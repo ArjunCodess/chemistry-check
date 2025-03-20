@@ -1,0 +1,82 @@
+{
+  "chat_id": 1234567890,
+  "participants": {
+    "user1": "ArjunCodess",
+    "user2": "her"
+  },
+  "messages": [
+    {
+      "id": 1,
+      "type": "text",
+      "date": "2023-02-24T14:10:13",
+      "from": "her",
+      "text": "Oh hi.....",
+      "reply_to_message_id": null,
+      "edited": false
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "date": "2023-02-24T14:11:38",
+      "from": "her",
+      "text": "Jaise i just analysed myself...",
+      "reply_to_message_id": 1,
+      "edited": true,
+      "edited_date": "2023-02-24T14:12:00"
+    },
+    {
+      "id": 3,
+      "type": "sticker",
+      "date": "2023-02-24T14:16:26",
+      "from": "ArjunCodess",
+      "sticker_emoji": "👋",
+      "sticker_format": "tgs",
+      "file_size": 7285
+    },
+    {
+      "id": 4,
+      "type": "image",
+      "date": "2023-02-24T14:22:19",
+      "from": "ArjunCodess",
+      "file_name": "screenshot.jpg",
+      "file_size": 108295,
+      "width": 632,
+      "height": 1280
+    },
+    {
+      "id": 5,
+      "type": "video",
+      "date": "2023-02-24T14:16:26",
+      "from": "ArjunCodess",
+      "file_name": "reaction.mp4",
+      "file_size": 78884,
+      "duration_seconds": 2,
+      "width": 320,
+      "height": 320
+    },
+    {
+      "id": 6,
+      "type": "document",
+      "date": "2023-02-24T14:11:38",
+      "from": "her",
+      "file_name": "notes.pdf",
+      "file_size": 512345
+    },
+    {
+      "id": 7,
+      "type": "reaction",
+      "date": "2023-02-24T15:47:49",
+      "from": "her",
+      "reaction_emoji": "👍",
+      "message_id": 2
+    },
+    {
+      "id": 8,
+      "type": "service",
+      "date": "2023-02-24T14:14:40",
+      "actor": "ArjunCodess",
+      "action": "edit_chat_theme",
+      "emoticon": "💜"
+    }
+  ]
+}
