@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { formatFileSize } from "@/lib/format-utils";
+import { Clock } from "lucide-react";
 
 // Loading fallback component for tab transitions
 const TabLoadingFallback = () => (
@@ -44,22 +45,7 @@ const DistributionChart = dynamic(
   }
 );
 
-// New chart components for Phase 2
-const LineChart = dynamic(() => import("@/components/charts/line-chart"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-  ),
-});
-
 const WordCloud = dynamic(() => import("@/components/charts/word-cloud"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-  ),
-});
-
-const GapAnalysis = dynamic(() => import("@/components/charts/gap-analysis"), {
   ssr: false,
   loading: () => (
     <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
@@ -86,6 +72,8 @@ interface MediaStats {
     videos: number;
     documents: number;
     stickers: number;
+    animations: number;
+    links: number;
   };
   totalSize: number;
   byUser: Record<
@@ -97,6 +85,8 @@ interface MediaStats {
         videos: number;
         documents: number;
         stickers: number;
+        animations: number;
+        links: number;
       };
       totalSize: number;
     }
@@ -141,18 +131,20 @@ interface ChatStats {
   wordFrequency: Record<string, number>;
   emojiFrequency: Record<string, number>;
   wordFrequencyByUser: Record<string, Record<string, number>>;
+  longestMessages: Record<string, Array<{ text: string; length: number; date: string }>>;
 }
 
 export default function Dashboard() {
   const [stats, setStats] = useState<ChatStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     try {
-      const savedStats = localStorage.getItem("chatStats");
+      const savedData = localStorage.getItem("chatStats");
 
-      if (!savedStats) {
+      if (!savedData) {
         toast.error("No chat data found", {
           description: "Please upload a chat file first",
           duration: 4000,
@@ -163,14 +155,21 @@ export default function Dashboard() {
         return;
       }
 
-      // Parse stats from localStorage
-      const parsedStats = JSON.parse(savedStats);
+      // Parse data from localStorage
+      const parsedData = JSON.parse(savedData);
+
+      // Check if the data has the new format with stats and timestamp
+      const parsedStats = parsedData.stats ? parsedData.stats : parsedData;
+      const timestamp = parsedData.timestamp || null;
+
       console.log("Loaded stats from localStorage:", {
         totalMessages: parsedStats.totalMessages,
         totalWords: parsedStats.totalWords,
+        cachedAt: timestamp,
       });
 
       setStats(parsedStats);
+      setCacheTimestamp(timestamp);
     } catch (error) {
       console.error("Error loading chat stats:", error);
       toast.error("Failed to load chat data", {
@@ -187,6 +186,11 @@ export default function Dashboard() {
       setIsLoading(false);
     }
   }, [router]);
+
+  const handleUploadNewChat = () => {
+    // Don't clear the cache here so it's preserved until a new chat is uploaded
+    router.push("/");
+  };
 
   if (isLoading) {
     return (
@@ -226,7 +230,14 @@ export default function Dashboard() {
         editedMessages: stats.editedMessages || { total: 0, byUser: {} },
         mediaStats: stats.mediaStats || {
           total: 0,
-          byType: { images: 0, videos: 0, documents: 0, stickers: 0 },
+          byType: {
+            images: 0,
+            videos: 0,
+            documents: 0,
+            stickers: 0,
+            animations: 0,
+            links: 0,
+          },
           totalSize: 0,
           byUser: {},
         },
@@ -247,6 +258,7 @@ export default function Dashboard() {
         gapAnalysis: stats.gapAnalysis || {},
         biggestGaps: stats.biggestGaps || [],
         wordFrequencyByUser: stats.wordFrequencyByUser || {},
+        longestMessages: stats.longestMessages || {},
       }
     : {
         totalMessages: 0,
@@ -256,7 +268,14 @@ export default function Dashboard() {
         editedMessages: { total: 0, byUser: {} },
         mediaStats: {
           total: 0,
-          byType: { images: 0, videos: 0, documents: 0, stickers: 0 },
+          byType: {
+            images: 0,
+            videos: 0,
+            documents: 0,
+            stickers: 0,
+            animations: 0,
+            links: 0,
+          },
           totalSize: 0,
           byUser: {},
         },
@@ -277,6 +296,7 @@ export default function Dashboard() {
         gapAnalysis: {},
         biggestGaps: [],
         wordFrequencyByUser: {},
+        longestMessages: {},
       };
 
   console.log("Stats loaded successfully:", {
@@ -293,15 +313,24 @@ export default function Dashboard() {
   const mediaByTypeData = [
     { name: "Images", value: safeStats?.mediaStats?.byType?.images ?? 0 },
     { name: "Videos", value: safeStats?.mediaStats?.byType?.videos ?? 0 },
+    { name: "GIFs", value: safeStats?.mediaStats?.byType?.animations ?? 0 },
     { name: "Documents", value: safeStats?.mediaStats?.byType?.documents ?? 0 },
     { name: "Stickers", value: safeStats?.mediaStats?.byType?.stickers ?? 0 },
+    { name: "Links", value: safeStats?.mediaStats?.byType?.links ?? 0 },
   ].filter((item) => item.value > 0);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Chat Analytics</h1>
-        <Button onClick={() => router.push("/")} variant="outline">
+        <div>
+          <h1 className="text-3xl font-bold">Chat Analytics</h1>
+          {cacheTimestamp && (
+            <p className="text-sm text-gray-500 mt-1">
+              Analysis from {new Date(cacheTimestamp).toLocaleString()}
+            </p>
+          )}
+        </div>
+        <Button onClick={handleUploadNewChat} variant="outline">
           Upload New Chat
         </Button>
       </div>
@@ -313,7 +342,6 @@ export default function Dashboard() {
           <TabsTrigger value="media">Media</TabsTrigger>
           <TabsTrigger value="emoji">Emoji Analysis</TabsTrigger>
           <TabsTrigger value="phrases">Phrase Analysis</TabsTrigger>
-          <TabsTrigger value="gaps">Gap Analysis</TabsTrigger>
         </TabsList>
 
         {/* Basic Stats Tab */}
@@ -754,96 +782,339 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Add Longest Messages card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Top 3 Longest Messages</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {Object.entries(safeStats.longestMessages || {}).map(
+                    ([user, messages]) => (
+                      <div key={user} className="border-b pb-4 last:border-b-0">
+                        <h3 className="text-lg font-medium mb-3">{user}</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {(Array.isArray(messages) ? messages : [messages]).map((message, index) => (
+                            <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                              <div className="flex justify-between items-center mb-2">
+                                <span className="text-xs text-gray-500">{message.date || 'Unknown date'}</span>
+                                <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                  {message.length} words
+                                </span>
+                              </div>
+                              <p className="text-sm text-gray-700">
+                                &ldquo;{message.text}&rdquo;
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  )}
+                  {Object.keys(safeStats.longestMessages || {}).length === 0 && (
+                    <div className="text-sm text-gray-500 text-center py-4">
+                      No message data available
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </Suspense>
         </TabsContent>
 
         {/* Response Times Tab */}
         <TabsContent value="time" className="space-y-6">
           <Suspense fallback={<TabLoadingFallback />}>
-            <div className="space-y-4 mb-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Understanding Response Times</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4 text-sm text-gray-600">
-                    <p>
-                      • Response times are calculated between messages from
-                      different users
-                    </p>
-                    <p>
-                      • Long response times ({">"}60 min) are considered
-                      &ldquo;ghosting&rdquo;
-                    </p>
-                    <p>• Distribution categories:</p>
-                    <ul className="list-disc pl-4 space-y-1">
-                      <li>Quick (0-5 min): Immediate responses</li>
-                      <li>Normal (5-15 min): Regular conversation pace</li>
-                      <li>Slow (15-30 min): Delayed responses</li>
-                      <li>Very Slow (30-60 min): Significant delays</li>
-                      <li>
-                        Ghosting ({">"}60 min): Extended periods without
-                        response
-                      </li>
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Object.entries(safeStats?.responseTimes ?? {}).map(
-                ([user, rtStats]) => (
-                  <Card key={user}>
-                    <CardHeader>
-                      <CardTitle>{user}&apos;s Response Times</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-500">
-                              Average Response
-                            </p>
-                            <p className="text-xl font-semibold">
-                              {rtStats && typeof rtStats.average === "number"
-                                ? `${rtStats.average.toFixed(1)} min`
-                                : "N/A"}
-                            </p>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-sm text-gray-500">
-                              Longest Response
-                            </p>
-                            <p className="text-xl font-semibold">
-                              {rtStats && typeof rtStats.longest === "number"
-                                ? `${rtStats.longest.toFixed(1)} min`
-                                : "N/A"}
-                            </p>
-                          </div>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card className="md:col-span-2">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-base font-medium">
+                      Response Time Overview
+                    </CardTitle>
+                    <Clock className="w-5 h-5 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-muted-foreground">
+                      Response times show how quickly users reply to each
+                      other&apos;s messages. Faster response times typically
+                      indicate more engaged conversations.
+                    </div>
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+                      <div className="bg-primary/5 rounded-lg p-3 border border-primary/10">
+                        <div className="text-xs font-medium text-muted-foreground uppercase">
+                          Quick
                         </div>
-
-                        <Suspense
-                          fallback={
-                            <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-                          }
-                        >
-                          <DistributionChart
-                            data={Object.entries(
-                              rtStats?.distribution ?? {}
-                            ).map(([category, count]) => ({
-                              category,
-                              count,
-                            }))}
-                            title="Response Time Distribution"
-                            height={250}
-                          />
-                        </Suspense>
+                        <div className="text-xl font-semibold mt-1">
+                          0-5 min
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Immediate responses
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                )
-              )}
+                      <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                        <div className="text-xs font-medium text-muted-foreground uppercase">
+                          Normal
+                        </div>
+                        <div className="text-xl font-semibold mt-1">
+                          5-15 min
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Regular conversation
+                        </div>
+                      </div>
+                      <div className="bg-amber-50 rounded-lg p-3 border border-amber-100">
+                        <div className="text-xs font-medium text-muted-foreground uppercase">
+                          Slow
+                        </div>
+                        <div className="text-xl font-semibold mt-1">
+                          15-30 min
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Delayed responses
+                        </div>
+                      </div>
+                      <div className="bg-orange-50 rounded-lg p-3 border border-orange-100">
+                        <div className="text-xs font-medium text-muted-foreground uppercase">
+                          Very Slow
+                        </div>
+                        <div className="text-xl font-semibold mt-1">
+                          30-60 min
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Significant delays
+                        </div>
+                      </div>
+                      <div className="bg-red-50 rounded-lg p-3 border border-red-100">
+                        <div className="text-xs font-medium text-muted-foreground uppercase">
+                          Ghosting
+                        </div>
+                        <div className="text-xl font-semibold mt-1">
+                          60+ min
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Extended silence
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* User summary cards */}
+                {Object.entries(safeStats?.responseTimes ?? {}).map(
+                  ([user, rtStats]) => {
+                    // Get response time distribution for visualization
+                    const distribution = rtStats?.distribution ?? {};
+                    const totalResponses = Object.values(distribution).reduce(
+                      (sum, val) => sum + (val as number),
+                      0
+                    );
+
+                    // Calculate quick response percentage
+                    const quickResponsePercentage =
+                      totalResponses > 0
+                        ? Math.round(
+                            ((distribution["0-5min"] || 0) / totalResponses) *
+                              100
+                          )
+                        : 0;
+
+                    // Calculate ghosting percentage
+                    const ghostingPercentage =
+                      totalResponses > 0
+                        ? Math.round(
+                            ((distribution["1hour+"] || 0) / totalResponses) *
+                              100
+                          )
+                        : 0;
+
+                    return (
+                      <Card
+                        key={`summary-${user}`}
+                        className="overflow-hidden w-full"
+                      >
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-base">{user}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="text-3xl font-bold">
+                                {rtStats && typeof rtStats.average === "number"
+                                  ? `${rtStats.average.toFixed(1)}`
+                                  : "N/A"}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                avg. minutes to respond
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-3xl font-bold text-primary">
+                                {quickResponsePercentage}%
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                quick responses
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                            {/* Quick responses (0-5min) */}
+                            <div
+                              className="bg-primary h-full"
+                              style={{
+                                width: `${
+                                  ((distribution["0-5min"] || 0) /
+                                    totalResponses) *
+                                  100
+                                }%`,
+                              }}
+                            ></div>
+                            {/* Normal responses (5-15min) */}
+                            <div
+                              className="bg-blue-400 h-full"
+                              style={{
+                                width: `${
+                                  ((distribution["5-15min"] || 0) /
+                                    totalResponses) *
+                                  100
+                                }%`,
+                              }}
+                            ></div>
+                            {/* Slow responses (15-30min) */}
+                            <div
+                              className="bg-amber-400 h-full"
+                              style={{
+                                width: `${
+                                  ((distribution["15-30min"] || 0) /
+                                    totalResponses) *
+                                  100
+                                }%`,
+                              }}
+                            ></div>
+                            {/* Very slow responses (30min-1hour) */}
+                            <div
+                              className="bg-orange-400 h-full"
+                              style={{
+                                width: `${
+                                  ((distribution["30min-1hour"] || 0) /
+                                    totalResponses) *
+                                  100
+                                }%`,
+                              }}
+                            ></div>
+                            {/* Ghosting (1hour+) */}
+                            <div
+                              className="bg-red-400 h-full"
+                              style={{
+                                width: `${
+                                  ((distribution["1hour+"] || 0) /
+                                    totalResponses) *
+                                  100
+                                }%`,
+                              }}
+                            ></div>
+                          </div>
+
+                          <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                            <span>Quick</span>
+                            <span>Ghosting: {ghostingPercentage}%</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  }
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Object.entries(safeStats?.responseTimes ?? {}).map(
+                  ([user, rtStats]) => (
+                    <Card key={`detail-${user}`} className="overflow-hidden">
+                      <CardHeader>
+                        <CardTitle>{user}&apos;s Response Times</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-6">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-background p-4 rounded-lg border shadow-sm">
+                              <div className="flex items-center space-x-2">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="text-primary"
+                                >
+                                  <circle cx="12" cy="12" r="10" />
+                                  <polyline points="12 6 12 12 16 14" />
+                                </svg>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Average Response
+                                </p>
+                              </div>
+                              <p className="text-2xl font-bold mt-2">
+                                {rtStats && typeof rtStats.average === "number"
+                                  ? `${rtStats.average.toFixed(1)} min`
+                                  : "N/A"}
+                              </p>
+                            </div>
+                            <div className="bg-background p-4 rounded-lg border shadow-sm">
+                              <div className="flex items-center space-x-2">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="18"
+                                  height="18"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="text-primary"
+                                >
+                                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                                </svg>
+                                <p className="text-sm font-medium text-muted-foreground">
+                                  Longest Response
+                                </p>
+                              </div>
+                              <p className="text-2xl font-bold mt-2">
+                                {rtStats && typeof rtStats.longest === "number"
+                                  ? `${rtStats.longest.toFixed(1)} min`
+                                  : "N/A"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <Suspense
+                            fallback={
+                              <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
+                            }
+                          >
+                            <DistributionChart
+                              data={Object.entries(
+                                rtStats?.distribution ?? {}
+                              ).map(([category, count]) => ({
+                                category,
+                                count,
+                              }))}
+                              title="Response Time Distribution"
+                              height={250}
+                            />
+                          </Suspense>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                )}
+              </div>
             </div>
           </Suspense>
         </TabsContent>
@@ -880,11 +1151,7 @@ export default function Dashboard() {
                         <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
                       }
                     >
-                      <PieChart
-                        data={mediaByTypeData}
-                        title="Media by Type"
-                        height={250}
-                      />
+                      <PieChart data={mediaByTypeData} />
                     </Suspense>
                   </div>
                 </CardContent>
@@ -895,48 +1162,100 @@ export default function Dashboard() {
                   <CardTitle>Media by User</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {Object.entries(safeStats?.mediaStats?.byUser ?? {}).map(
-                      ([user, userMedia]) => (
-                        <div
-                          key={user}
-                          className="border-b pb-4 last:border-b-0"
-                        >
-                          <h3 className="text-lg font-medium mb-2">{user}</h3>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <div className="bg-gray-50 p-2 rounded">
-                              <p className="text-xs text-gray-500">Images</p>
-                              <p className="font-medium">
-                                {userMedia?.byType?.images ?? 0}
-                              </p>
+                      ([user, userMedia]) => {
+                        // Calculate total media for this user
+                        const userTotal = userMedia?.total ?? 0;
+                        // Calculate percentage compared to overall media
+                        const percentOfTotal = safeStats?.mediaStats?.total
+                          ? Math.round(
+                              (userTotal / safeStats.mediaStats.total) * 100
+                            )
+                          : 0;
+
+                        return (
+                          <div
+                            key={user}
+                            className="border border-border rounded-lg p-4 shadow-sm"
+                          >
+                            <div className="flex justify-between items-center mb-3">
+                              <h3 className="text-lg font-medium">{user}</h3>
+                              <div className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-semibold">
+                                {percentOfTotal}% of total
+                              </div>
                             </div>
-                            <div className="bg-gray-50 p-2 rounded">
-                              <p className="text-xs text-gray-500">Videos</p>
-                              <p className="font-medium">
-                                {userMedia?.byType?.videos ?? 0}
-                              </p>
+
+                            <div className="mb-4">
+                              <div className="flex justify-between items-center mb-1 text-sm">
+                                <span>
+                                  Total Media: <strong>{userTotal}</strong>
+                                </span>
+                                <span>
+                                  Size:{" "}
+                                  <strong>
+                                    {formatFileSize(userMedia?.totalSize ?? 0)}
+                                  </strong>
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-100 rounded-full h-2.5">
+                                <div
+                                  className="bg-primary h-2.5 rounded-full"
+                                  style={{ width: `${percentOfTotal}%` }}
+                                ></div>
+                              </div>
                             </div>
-                            <div className="bg-gray-50 p-2 rounded">
-                              <p className="text-xs text-gray-500">Documents</p>
-                              <p className="font-medium">
-                                {userMedia?.byType?.documents ?? 0}
-                              </p>
-                            </div>
-                            <div className="bg-gray-50 p-2 rounded">
-                              <p className="text-xs text-gray-500">Stickers</p>
-                              <p className="font-medium">
-                                {userMedia?.byType?.stickers ?? 0}
-                              </p>
+
+                            <div className="grid grid-cols-3 gap-2">
+                              {[
+                                {
+                                  name: "Images",
+                                  value: userMedia?.byType?.images ?? 0,
+                                  icon: "📷",
+                                },
+                                {
+                                  name: "Videos",
+                                  value: userMedia?.byType?.videos ?? 0,
+                                  icon: "🎬",
+                                },
+                                {
+                                  name: "GIFs",
+                                  value: userMedia?.byType?.animations ?? 0,
+                                  icon: "✨",
+                                },
+                                {
+                                  name: "Documents",
+                                  value: userMedia?.byType?.documents ?? 0,
+                                  icon: "📄",
+                                },
+                                {
+                                  name: "Stickers",
+                                  value: userMedia?.byType?.stickers ?? 0,
+                                  icon: "🔖",
+                                },
+                                {
+                                  name: "Links",
+                                  value: userMedia?.byType?.links ?? 0,
+                                  icon: "🔗",
+                                },
+                              ].map((item) => (
+                                <div
+                                  key={item.name}
+                                  className="bg-gray-50 p-3 rounded-md flex gap-2 items-center"
+                                >
+                                  <span className="text-lg">{item.icon}</span>
+                                  <div>
+                                    <p className="text-xs text-gray-500 leading-tight">
+                                      {item.name}
+                                    </p>
+                                    <p className="font-medium">{item.value}</p>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                          <p className="mt-2 text-sm">
-                            Total Size:{" "}
-                            <span className="font-medium">
-                              {formatFileSize(userMedia?.totalSize ?? 0)}
-                            </span>
-                          </p>
-                        </div>
-                      )
+                        );
+                      }
                     )}
                   </div>
                 </CardContent>
@@ -988,13 +1307,13 @@ export default function Dashboard() {
                           className="border-b pb-4 last:border-b-0"
                         >
                           <h3 className="text-lg font-medium mb-2">{user}</h3>
-                          <div className="grid grid-cols-5 gap-2">
+                          <div className="grid grid-cols-3 gap-2">
                             {Object.entries(emojis || {})
                               .sort(
                                 ([, countA], [, countB]) =>
                                   Number(countB) - Number(countA)
                               )
-                              .slice(0, 5)
+                              .slice(0, 6)
                               .map(([emoji, count]) => (
                                 <div
                                   key={emoji}
@@ -1020,28 +1339,26 @@ export default function Dashboard() {
         {/* New Phrase Analysis Tab */}
         <TabsContent value="phrases" className="space-y-6">
           <Suspense fallback={<TabLoadingFallback />}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Common Phrases</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Suspense
-                    fallback={
-                      <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-                    }
-                  >
-                    <WordCloud
-                      data={(safeStats?.commonPhrases ?? []).map((phrase) => ({
-                        text: phrase.text,
-                        value: phrase.count,
-                      }))}
-                      title="Common Phrases"
-                      height={350}
-                    />
-                  </Suspense>
-                </CardContent>
-              </Card>
+            {/* Word Cloud in full-width first row */}
+            <div className="mb-6">
+              <Suspense
+                fallback={
+                  <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
+                }
+              >
+                <WordCloud
+                  data={(safeStats?.commonPhrases ?? []).map((phrase) => ({
+                    text: phrase.text,
+                    value: phrase.count,
+                  }))}
+                  title="Common Phrases"
+                  height={300}
+                />
+              </Suspense>
+            </div>
+
+            {/* Overused Phrases in second row */}
+            <div className="grid grid-cols-1 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Overused Phrases</CardTitle>
@@ -1055,7 +1372,7 @@ export default function Dashboard() {
                           className="border-b pb-4 last:border-b-0"
                         >
                           <h3 className="text-lg font-medium mb-2">{user}</h3>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
                             {phrases.map(
                               (phrase: { text: string; count: number }) => (
                                 <div
@@ -1071,89 +1388,6 @@ export default function Dashboard() {
                                 </div>
                               )
                             )}
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </Suspense>
-        </TabsContent>
-
-        {/* New Gap Analysis Tab */}
-        <TabsContent value="gaps" className="space-y-6">
-          <Suspense fallback={<TabLoadingFallback />}>
-            <div className="grid grid-cols-1 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Message Gap Trends</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Suspense
-                    fallback={
-                      <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-                    }
-                  >
-                    <LineChart
-                      data={safeStats?.gapTrends ?? []}
-                      dataKeys={Object.keys(safeStats?.messagesByUser ?? {})}
-                      title="Response Time Trends"
-                      height={300}
-                      xAxisKey="time"
-                    />
-                  </Suspense>
-                </CardContent>
-              </Card>
-
-              {Object.entries(safeStats?.gapAnalysis ?? {}).map(
-                ([user, gapData]) => (
-                  <Suspense
-                    key={user}
-                    fallback={
-                      <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-                    }
-                  >
-                    <GapAnalysis
-                      data={(gapData ?? []).map(
-                        (gap: { time: string; duration: number }) => ({
-                          time: gap.time,
-                          gap: gap.duration,
-                          user: user,
-                        })
-                      )}
-                      title={`${user}'s Response Gaps`}
-                      height={300}
-                    />
-                  </Suspense>
-                )
-              )}
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Biggest Message Gaps</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {(safeStats?.biggestGaps ?? []).map(
-                      (
-                        gap: { user: string; duration: number; date: string },
-                        index: number
-                      ) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-4 border-b pb-3 last:border-b-0"
-                        >
-                          <div className="flex-shrink-0 w-10 h-10 bg-purple-100 text-purple-800 rounded-full flex items-center justify-center">
-                            {index + 1}
-                          </div>
-                          <div>
-                            <p className="font-medium">{gap.user}</p>
-                            <p className="text-sm text-gray-500">
-                              {gap.duration.toFixed(1)} minutes on{" "}
-                              {new Date(gap.date).toLocaleDateString()}
-                            </p>
                           </div>
                         </div>
                       )

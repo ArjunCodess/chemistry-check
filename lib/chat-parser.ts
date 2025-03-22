@@ -3,7 +3,7 @@ interface Message {
   type: string;
   date: string;
   from: string;
-  text?: string;
+  text?: string | Array<{type: string, text: string}>;
   reply_to_message_id?: number;
   edited?: boolean;
   edited_date?: string;
@@ -19,6 +19,13 @@ interface Message {
   actor?: string;
   action?: string;
   emoticon?: string;
+  file?: boolean;
+  media_type?: string;
+  mime_type?: string;
+  photo?: string;
+  photo_file_size?: number;
+  thumbnail?: string;
+  thumbnail_file_size?: number;
 }
 
 interface ChatData {
@@ -47,6 +54,8 @@ interface MediaStats {
     videos: number;
     documents: number;
     stickers: number;
+    animations: number;
+    links: number;
   };
   totalSize: number;
   byUser: Record<string, {
@@ -56,6 +65,8 @@ interface MediaStats {
       videos: number;
       documents: number;
       stickers: number;
+      animations: number;
+      links: number;
     };
     totalSize: number;
   }>;
@@ -99,6 +110,7 @@ export interface ChatStats {
   gapTrends?: Array<{ time: string; duration: number }>;
   gapAnalysis?: Record<string, Array<{ time: string; duration: number }>>;
   biggestGaps?: Array<{ user: string; duration: number; date: string }>;
+  longestMessages?: Record<string, Array<{ text: string; length: number; date: string }>>;
 }
 
 export function parseChatData(data: ChatData) {
@@ -119,7 +131,14 @@ export function parseChatData(data: ChatData) {
       responseTimes: {},
       mediaStats: {
         total: 0,
-        byType: { images: 0, videos: 0, documents: 0, stickers: 0 },
+        byType: { 
+          images: 0, 
+          videos: 0, 
+          documents: 0, 
+          stickers: 0,
+          animations: 0,
+          links: 0
+        },
         totalSize: 0,
         byUser: {}
       },
@@ -130,15 +149,13 @@ export function parseChatData(data: ChatData) {
         sentiment: { positive: 0, negative: 0, neutral: 0 }
       },
       editedMessages: { total: 0, byUser: {} },
-      wordFrequencyByUser: {}
+      wordFrequencyByUser: {},
+      gapTrends: [],
+      gapAnalysis: {},
+      biggestGaps: [],
+      longestMessages: {}
     };
   }
-  
-  // Examine the structure of messages
-  console.log("DEBUGGING MESSAGE STRUCTURE");
-  console.log("First message:", JSON.stringify(data.messages[0]));
-  console.log("Message types present:", [...new Set(data.messages.map(m => m.type))].join(", "));
-  console.log("Total messages with text property:", data.messages.filter(m => m.text !== undefined).length);
   
   // Initialize primary stats object
   const stats = {
@@ -159,7 +176,9 @@ export function parseChatData(data: ChatData) {
         images: 0,
         videos: 0,
         documents: 0,
-        stickers: 0
+        stickers: 0,
+        animations: 0,
+        links: 0
       },
       totalSize: 0,
       byUser: {} as MediaStats['byUser']
@@ -177,7 +196,13 @@ export function parseChatData(data: ChatData) {
     editedMessages: {
       total: 0,
       byUser: {} as Record<string, number>
-    }
+    },
+    commonPhrases: [] as Array<{ text: string; count: number }>,
+    overusedPhrases: {} as Record<string, Array<{ text: string; count: number }>>,
+    gapTrends: [] as Array<{ time: string; duration: number }>,
+    gapAnalysis: {} as Record<string, Array<{ time: string; duration: number }>>,
+    biggestGaps: [] as Array<{ user: string; duration: number; date: string }>,
+    longestMessages: {} as Record<string, Array<{ text: string; length: number; date: string }>>
   };
   
   // Track message counts and word counts by user
@@ -216,8 +241,15 @@ export function parseChatData(data: ChatData) {
 
     // Process ANY message with text content, regardless of type
     if (message.text) {
+      // Get message text as string
+      const messageText = typeof message.text === 'string' 
+        ? message.text 
+        : Array.isArray(message.text) 
+          ? message.text.map(t => typeof t === 'string' ? t : t.text).join(' ')
+          : '';
+      
       // Count words with simplified logic
-      const words = String(message.text)
+      const words = messageText
         .trim()
         .split(/\s+/)
         .filter(Boolean); // Remove empty strings
@@ -235,7 +267,32 @@ export function parseChatData(data: ChatData) {
         
         // Log first few messages for debugging
         if (index < 10 || index % 1000 === 0) {
-          console.log(`Message #${index} from ${user}: "${String(message.text).substring(0, 30)}..." - Words: ${wordCount}`);
+          console.log(`Message #${index} from ${user}: "${messageText.substring(0, 30)}..." - Words: ${wordCount}`);
+        }
+        
+        // Track longest messages for this user (keep top 3)
+        if (!stats.longestMessages[user]) {
+          stats.longestMessages[user] = [];
+        }
+        
+        // Limit message text to reasonable size for display purposes
+        const displayText = messageText.length > 100 
+          ? messageText.substring(0, 100) + "..." 
+          : messageText;
+        
+        const messageDate = message.date ? new Date(message.date).toLocaleDateString() : 'Unknown date';
+        
+        // Add this message to the user's list
+        stats.longestMessages[user].push({
+          text: displayText,
+          length: wordCount,
+          date: messageDate
+        });
+        
+        // Sort messages by length (descending) and keep only top 3
+        stats.longestMessages[user].sort((a, b) => b.length - a.length);
+        if (stats.longestMessages[user].length > 3) {
+          stats.longestMessages[user] = stats.longestMessages[user].slice(0, 3);
         }
       }
 
@@ -339,7 +396,9 @@ export function parseChatData(data: ChatData) {
             images: 0,
             videos: 0,
             documents: 0,
-            stickers: 0
+            stickers: 0,
+            animations: 0,
+            links: 0
           },
           totalSize: 0
         };
@@ -367,6 +426,96 @@ export function parseChatData(data: ChatData) {
       } else if (message.type === 'sticker') {
         stats.mediaStats.byType.stickers++;
         stats.mediaStats.byUser[user].byType.stickers++;
+      }
+    } 
+    // Check for media in regular message types
+    else if (message.type === 'message') {
+      let isMediaMessage = false;
+      let mediaSize = 0;
+      
+      // Initialize media stats for user if needed
+      if (!stats.mediaStats.byUser[user]) {
+        stats.mediaStats.byUser[user] = {
+          total: 0,
+          byType: {
+            images: 0,
+            videos: 0,
+            documents: 0,
+            stickers: 0,
+            animations: 0,
+            links: 0
+          },
+          totalSize: 0
+        };
+      }
+      
+      // Check for photo (image)
+      if (message.photo) {
+        isMediaMessage = true;
+        stats.mediaStats.byType.images++;
+        stats.mediaStats.byUser[user].byType.images++;
+        
+        if (message.photo_file_size) {
+          mediaSize = message.photo_file_size;
+        }
+      }
+      // Check for video
+      else if (message.media_type === 'video_file') {
+        isMediaMessage = true;
+        stats.mediaStats.byType.videos++;
+        stats.mediaStats.byUser[user].byType.videos++;
+        
+        if (message.file_size) {
+          mediaSize = message.file_size;
+        }
+      }
+      // Check for animation (GIF)
+      else if (message.media_type === 'animation') {
+        isMediaMessage = true;
+        stats.mediaStats.byType.animations++;
+        stats.mediaStats.byUser[user].byType.animations++;
+        
+        if (message.file_size) {
+          mediaSize = message.file_size;
+        }
+      }
+      // Check for stickers
+      else if (message.media_type === 'sticker') {
+        isMediaMessage = true;
+        stats.mediaStats.byType.stickers++;
+        stats.mediaStats.byUser[user].byType.stickers++;
+        
+        if (message.file_size) {
+          mediaSize = message.file_size;
+        }
+      }
+      // Check for links in text
+      else if (message.text && Array.isArray(message.text) && 
+               message.text.some(item => item.type === 'link')) {
+        isMediaMessage = true;
+        stats.mediaStats.byType.links++;
+        stats.mediaStats.byUser[user].byType.links++;
+      }
+      // Check for files (documents)
+      else if (message.file_name) {
+        isMediaMessage = true;
+        stats.mediaStats.byType.documents++;
+        stats.mediaStats.byUser[user].byType.documents++;
+        
+        if (message.file_size) {
+          mediaSize = message.file_size;
+        }
+      }
+      
+      // Update media stats if this was a media message
+      if (isMediaMessage) {
+        stats.mediaStats.total++;
+        stats.mediaStats.byUser[user].total++;
+        
+        if (mediaSize > 0) {
+          stats.mediaStats.totalSize += mediaSize;
+          stats.mediaStats.byUser[user].totalSize += mediaSize;
+        }
       }
     }
   });
@@ -442,15 +591,6 @@ export function parseChatData(data: ChatData) {
     .map(([emoji, count]) => ({ emoji, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
-    
-  // Add placeholder emoji if empty
-  if (stats.mostUsedEmojis.length === 0) {
-    stats.mostUsedEmojis = [
-      { emoji: '👍', count: 5 },
-      { emoji: '❤️', count: 3 },
-      { emoji: '😊', count: 2 }
-    ];
-  }
 
   console.log("Chat stats generated:", {
     totalMessages: stats.totalMessages,
@@ -462,5 +602,293 @@ export function parseChatData(data: ChatData) {
     topEmojis: stats.mostUsedEmojis.slice(0, 3).map(e => e.emoji).join(', ')
   });
 
+  // Calculate response statistics and gap analysis
+  const userResponseTimes: Record<string, number[]> = {};
+  const userGapTimes: Record<string, Array<{ time: string; duration: number }>> = {};
+  const allGapTimes: Array<{ time: string; duration: number }> = [];
+  const biggestGaps: Array<{ user: string; duration: number; date: string }> = [];
+
+  // Initialize response time stats for each user
+  Object.keys(stats.messagesByUser).forEach(user => {
+    stats.responseTimes[user] = {
+      average: 0,
+      longest: 0,
+      distribution: {
+        '0-5min': 0,
+        '5-15min': 0,
+        '15-30min': 0,
+        '30min-1hour': 0,
+        '1hour+': 0
+      }
+    };
+    userResponseTimes[user] = [];
+    userGapTimes[user] = [];
+  });
+
+  // Process messages to calculate response times
+  for (let i = 1; i < data.messages.length; i++) {
+    const prevMsg = data.messages[i-1];
+    const currMsg = data.messages[i];
+    
+    // Skip if either message is missing required data
+    if (!prevMsg || !currMsg || !prevMsg.date || !currMsg.date || 
+        !prevMsg.from || !currMsg.from || prevMsg.from === currMsg.from) {
+      continue;
+    }
+    
+    // Calculate the gap in minutes
+    const prevDate = new Date(prevMsg.date);
+    const currDate = new Date(currMsg.date);
+    const diffInMs = currDate.getTime() - prevDate.getTime();
+    const diffInMin = diffInMs / (1000 * 60);
+    
+    // Skip if unreasonable gap (24 hours or more) - likely not a direct response
+    if (diffInMin > 24 * 60) {
+      continue;
+    }
+    
+    const user = currMsg.from;
+    if (!userResponseTimes[user]) continue;
+    
+    // Record the response time
+    userResponseTimes[user].push(diffInMin);
+    
+    // Add to gap analysis data
+    const timeStr = currDate.toISOString().split('T')[0]; // YYYY-MM-DD
+    userGapTimes[user].push({ time: timeStr, duration: diffInMin });
+    allGapTimes.push({ time: timeStr, duration: diffInMin });
+    
+    // Categorize response time
+    if (diffInMin <= 5) {
+      stats.responseTimes[user].distribution['0-5min']++;
+    } else if (diffInMin <= 15) {
+      stats.responseTimes[user].distribution['5-15min']++;
+    } else if (diffInMin <= 30) {
+      stats.responseTimes[user].distribution['15-30min']++;
+    } else if (diffInMin <= 60) {
+      stats.responseTimes[user].distribution['30min-1hour']++;
+    } else {
+      stats.responseTimes[user].distribution['1hour+']++;
+    }
+    
+    // Track biggest gaps
+    if (biggestGaps.length < 10 || diffInMin > biggestGaps[biggestGaps.length - 1].duration) {
+      const gapRecord = {
+        user,
+        duration: diffInMin,
+        date: currDate.toISOString()
+      };
+      
+      // Insert into sorted array
+      biggestGaps.push(gapRecord);
+      biggestGaps.sort((a, b) => b.duration - a.duration);
+      
+      // Keep only top 10
+      if (biggestGaps.length > 10) {
+        biggestGaps.pop();
+      }
+    }
+  }
+
+  // Calculate average and longest response times
+  Object.keys(userResponseTimes).forEach(user => {
+    const times = userResponseTimes[user];
+    if (times.length > 0) {
+      // Calculate average
+      stats.responseTimes[user].average = times.reduce((sum, time) => sum + time, 0) / times.length;
+      
+      // Find longest
+      stats.responseTimes[user].longest = Math.max(...times);
+    }
+  });
+
+  // Assign gap analysis data to stats
+  stats.gapTrends = allGapTimes;
+  stats.gapAnalysis = userGapTimes;
+  stats.biggestGaps = biggestGaps;
+
+  // Phrase Analysis: Extract common phrases and detect overused phrases
+  const phraseAnalysis = analyzePhrases(data.messages, Object.keys(stats.messagesByUser));
+  stats.commonPhrases = phraseAnalysis.commonPhrases;
+  stats.overusedPhrases = phraseAnalysis.overusedPhrases;
+
   return stats;
+}
+
+/**
+ * Analyzes messages to identify common phrases and user-specific overused phrases
+ */
+function analyzePhrases(messages: Message[], users: string[]): { 
+  commonPhrases: Array<{ text: string; count: number }>;
+  overusedPhrases: Record<string, Array<{ text: string; count: number }>>;
+} {
+  // Minimum phrase length to consider (in words)
+  const MIN_PHRASE_LENGTH = 2;
+  // Maximum phrase length to analyze
+  const MAX_PHRASE_LENGTH = 5;
+  // Minimum occurrences to be considered common
+  const MIN_OCCURRENCES = 3;
+  // Minimum occurrences for user-specific phrases to be considered overused
+  const MIN_USER_OCCURRENCES = 3;
+
+  // Initialize phrase counters
+  const phraseCounts: Record<string, number> = {};
+  const userPhraseCounts: Record<string, Record<string, number>> = {};
+  
+  // Initialize user phrase counts
+  users.forEach(user => {
+    userPhraseCounts[user] = {};
+  });
+
+  // Process each message with text content
+  messages.forEach(message => {
+    if (!message || !message.from || !message.text) return;
+    
+    const user = message.from;
+    if (!userPhraseCounts[user]) return; // Skip if user not in our tracking list
+    
+    // Convert text to string if it's not already
+    const text = typeof message.text === 'string' 
+      ? message.text 
+      : Array.isArray(message.text) 
+        ? message.text.map(t => typeof t === 'string' ? t : t.text).join(' ')
+        : '';
+    
+    if (!text || text.trim().length === 0) return;
+    
+    // Normalize text: lowercase and remove extra whitespace
+    const normalizedText = text.toLowerCase().replace(/\s+/g, ' ').trim();
+    
+    // Split into words
+    const words = normalizedText.split(' ');
+    
+    // Skip if too few words
+    if (words.length < MIN_PHRASE_LENGTH) return;
+    
+    // Extract phrases of different lengths
+    for (let phraseLength = MIN_PHRASE_LENGTH; phraseLength <= MAX_PHRASE_LENGTH; phraseLength++) {
+      // Skip if message is shorter than current phrase length
+      if (words.length < phraseLength) continue;
+      
+      // Extract all possible phrases of current length
+      for (let i = 0; i <= words.length - phraseLength; i++) {
+        const phrase = words.slice(i, i + phraseLength).join(' ');
+        
+        // Skip extremely short phrases or phrases containing just special characters/numbers
+        if (phrase.length < 4 || /^[\d\s.,!?;:'"()\[\]{}]+$/.test(phrase)) continue;
+        
+        // Update global phrase count
+        phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
+        
+        // Update user-specific phrase count
+        userPhraseCounts[user][phrase] = (userPhraseCounts[user][phrase] || 0) + 1;
+      }
+    }
+  });
+
+  // Filter out subset phrases with identical counts
+  const filteredPhraseCounts = filterSubsetPhrases(phraseCounts);
+  
+  // Extract common phrases (used by anyone)
+  const commonPhrases = Object.entries(filteredPhraseCounts)
+    .filter(([, count]) => count >= MIN_OCCURRENCES)
+    .map(([text, count]) => ({ text, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 20); // Top 20 common phrases
+
+  // Extract overused phrases per user
+  const overusedPhrases: Record<string, Array<{ text: string; count: number }>> = {};
+  
+  users.forEach(user => {
+    // Filter subset phrases for this user
+    const filteredUserPhrases = filterSubsetPhrases(userPhraseCounts[user]);
+    
+    // Get all phrases used by this user with minimum occurrences
+    const userPhrases = Object.entries(filteredUserPhrases)
+      .filter(([, count]) => count >= MIN_USER_OCCURRENCES)
+      .map(([text, count]) => ({ text, count }))
+      .sort((a, b) => b.count - a.count);
+    
+    // Only keep phrases that are significantly used by this user (user's usage divided by total usage is high)
+    const significantPhrases = userPhrases.filter(({ text, count }) => {
+      const totalUsage = filteredPhraseCounts[text] || count;
+      const userPercentage = count / totalUsage;
+      
+      // If user accounts for 70%+ of the phrase usage and used it at least MIN_USER_OCCURRENCES times
+      return userPercentage >= 0.7 && count >= MIN_USER_OCCURRENCES;
+    });
+    
+    if (significantPhrases.length > 0) {
+      overusedPhrases[user] = significantPhrases.slice(0, 10); // Top 10 overused phrases per user
+    }
+  });
+
+  return {
+    commonPhrases,
+    overusedPhrases
+  };
+}
+
+/**
+ * Filters out subset phrases that have the same occurrence count as their containing phrases
+ * For example, if "night" and "good night" both have 10 occurrences, we only keep "good night"
+ */
+function filterSubsetPhrases(phraseCounts: Record<string, number>): Record<string, number> {
+  const result: Record<string, number> = {};
+  
+  // Group phrases by count to find potential subsets
+  const phrasesByCount: Record<number, string[]> = {};
+  
+  // Sort phrases by length (longest first) so we process longer phrases before shorter ones
+  const phrases = Object.keys(phraseCounts).sort((a, b) => b.length - a.length);
+  
+  for (const phrase of phrases) {
+    const count = phraseCounts[phrase];
+    if (!phrasesByCount[count]) {
+      phrasesByCount[count] = [];
+    }
+    phrasesByCount[count].push(phrase);
+  }
+  
+  // Filter subsets within each count group
+  Object.entries(phrasesByCount).forEach(([countStr, phrasesWithCount]) => {
+    const count = parseInt(countStr);
+    
+    // If only one phrase has this count, add it directly
+    if (phrasesWithCount.length === 1) {
+      result[phrasesWithCount[0]] = count;
+      return;
+    }
+    
+    // Sort phrases by length (longest first)
+    const sortedPhrases = phrasesWithCount.sort((a, b) => b.length - a.length);
+    
+    // Track which phrases to include
+    const includePhrases = new Set(sortedPhrases);
+    
+    // Check for subset relationships
+    for (let i = 0; i < sortedPhrases.length; i++) {
+      const phrase = sortedPhrases[i];
+      if (!includePhrases.has(phrase)) continue;
+      
+      for (let j = i + 1; j < sortedPhrases.length; j++) {
+        const potentialSubset = sortedPhrases[j];
+        
+        // Skip if already marked for exclusion
+        if (!includePhrases.has(potentialSubset)) continue;
+        
+        // If the longer phrase includes the shorter phrase, mark the shorter phrase for exclusion
+        if (phrase.includes(potentialSubset)) {
+          includePhrases.delete(potentialSubset);
+        }
+      }
+    }
+    
+    // Add all included phrases to the result
+    for (const phrase of includePhrases) {
+      result[phrase] = count;
+    }
+  });
+  
+  return result;
 } 
