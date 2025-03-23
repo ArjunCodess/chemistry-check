@@ -3,17 +3,19 @@
 import { useEffect, useState, Suspense, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { formatFileSize } from "@/lib/format-utils";
 import { Clock } from "lucide-react";
-import { 
-  Sheet, 
-  SheetContent, 
-  SheetTrigger 
-} from "@/components/ui/sheet";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Menu } from "lucide-react";
 
 // Loading fallback component for tab transitions
@@ -127,7 +129,10 @@ interface ChatStats {
   wordFrequency: Record<string, number>;
   emojiFrequency: Record<string, number>;
   wordFrequencyByUser: Record<string, Record<string, number>>;
-  longestMessages: Record<string, Array<{ text: string; length: number; date: string }>>;
+  longestMessages: Record<
+    string,
+    Array<{ text: string; length: number; date: string }>
+  >;
   messagesByHour?: Record<string, number>;
   messagesByDay?: Record<string, number>;
   messagesByMonth?: Record<string, number>;
@@ -139,28 +144,35 @@ export default function Dashboard() {
   const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
   const router = useRouter();
   // Track which messages are expanded
-  const [expandedMessages, setExpandedMessages] = useState<Record<string, Record<number, boolean>>>({});
+  const [expandedMessages, setExpandedMessages] = useState<
+    Record<string, Record<number, boolean>>
+  >({});
   // Track active tab for mobile nav
   const [activeTab, setActiveTab] = useState("basic");
+  // Track drawer open state
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Toggle message expansion with improved logic
-  const toggleMessageExpand = useCallback((user: string, index: number) => {
-    console.log("Toggling message:", { user, index });
-    console.log("Before:", expandedMessages);
-    
-    setExpandedMessages(prev => {
-      const newState = {
-        ...prev,
-        [user]: {
-          ...(prev[user] || {}),
-          [index]: !(prev[user]?.[index])
-        }
-      };
-      
-      console.log("After:", newState);
-      return newState;
-    });
-  }, [expandedMessages]);
+  const toggleMessageExpand = useCallback(
+    (user: string, index: number) => {
+      console.log("Toggling message:", { user, index });
+      console.log("Before:", expandedMessages);
+
+      setExpandedMessages((prev) => {
+        const newState = {
+          ...prev,
+          [user]: {
+            ...(prev[user] || {}),
+            [index]: !prev[user]?.[index],
+          },
+        };
+
+        console.log("After:", newState);
+        return newState;
+      });
+    },
+    [expandedMessages]
+  );
 
   useEffect(() => {
     try {
@@ -334,7 +346,9 @@ export default function Dashboard() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Chat Analytics</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+            Chat Analytics
+          </h1>
           {cacheTimestamp && (
             <p className="text-sm text-gray-500 mt-1">
               Analysis from {new Date(cacheTimestamp).toLocaleString()}
@@ -348,7 +362,12 @@ export default function Dashboard() {
 
       {/* Desktop Tabs */}
       <div className="hidden md:block">
-        <Tabs defaultValue="basic" className="w-full" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs
+          defaultValue="basic"
+          className="w-full"
+          value={activeTab}
+          onValueChange={setActiveTab}
+        >
           <TabsList className="mb-6 w-full">
             <TabsTrigger value="basic">Basic Stats</TabsTrigger>
             <TabsTrigger value="time">Response Times</TabsTrigger>
@@ -362,67 +381,93 @@ export default function Dashboard() {
 
       {/* Mobile Navigation */}
       <div className="md:hidden mb-6">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline" className="w-full flex justify-between items-center">
-              <span>{
-                activeTab === "basic" ? "Basic Stats" :
-                activeTab === "time" ? "Response Times" :
-                activeTab === "media" ? "Media" :
-                activeTab === "emoji" ? "Emoji Analysis" :
-                activeTab === "phrases" ? "Phrase Analysis" :
-                "Activity Patterns"
-              }</span>
+        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+          <DrawerTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full flex justify-between items-center"
+            >
+              <span>
+                {activeTab === "basic"
+                  ? "Basic Stats"
+                  : activeTab === "time"
+                  ? "Response Times"
+                  : activeTab === "media"
+                  ? "Media"
+                  : activeTab === "emoji"
+                  ? "Emoji Analysis"
+                  : activeTab === "phrases"
+                  ? "Phrase Analysis"
+                  : "Activity Patterns"}
+              </span>
               <Menu className="h-4 w-4" />
             </Button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="h-[30rem] px-4">
+          </DrawerTrigger>
+          <DrawerContent className="h-[30rem] px-4">
             <div className="grid grid-cols-1 gap-4 pt-14">
-              <Button 
-                variant={activeTab === "basic" ? "default" : "ghost"} 
-                onClick={() => setActiveTab("basic")}
+              <Button
+                variant={activeTab === "basic" ? "default" : "ghost"}
+                onClick={() => {
+                  setActiveTab("basic");
+                  setDrawerOpen(false);
+                }}
                 className="justify-start"
               >
                 Basic Stats
               </Button>
-              <Button 
-                variant={activeTab === "time" ? "default" : "ghost"} 
-                onClick={() => setActiveTab("time")}
+              <Button
+                variant={activeTab === "time" ? "default" : "ghost"}
+                onClick={() => {
+                  setActiveTab("time");
+                  setDrawerOpen(false);
+                }}
                 className="justify-start"
               >
                 Response Times
               </Button>
-              <Button 
-                variant={activeTab === "media" ? "default" : "ghost"} 
-                onClick={() => setActiveTab("media")}
+              <Button
+                variant={activeTab === "media" ? "default" : "ghost"}
+                onClick={() => {
+                  setActiveTab("media");
+                  setDrawerOpen(false);
+                }}
                 className="justify-start"
               >
                 Media
               </Button>
-              <Button 
-                variant={activeTab === "emoji" ? "default" : "ghost"} 
-                onClick={() => setActiveTab("emoji")}
+              <Button
+                variant={activeTab === "emoji" ? "default" : "ghost"}
+                onClick={() => {
+                  setActiveTab("emoji");
+                  setDrawerOpen(false);
+                }}
                 className="justify-start"
               >
                 Emoji Analysis
               </Button>
-              <Button 
-                variant={activeTab === "phrases" ? "default" : "ghost"} 
-                onClick={() => setActiveTab("phrases")}
+              <Button
+                variant={activeTab === "phrases" ? "default" : "ghost"}
+                onClick={() => {
+                  setActiveTab("phrases");
+                  setDrawerOpen(false);
+                }}
                 className="justify-start"
               >
                 Phrase Analysis
               </Button>
-              <Button 
-                variant={activeTab === "activity" ? "default" : "ghost"} 
-                onClick={() => setActiveTab("activity")}
+              <Button
+                variant={activeTab === "activity" ? "default" : "ghost"}
+                onClick={() => {
+                  setActiveTab("activity");
+                  setDrawerOpen(false);
+                }}
                 className="justify-start"
               >
                 Activity Patterns
               </Button>
             </div>
-          </SheetContent>
-        </Sheet>
+          </DrawerContent>
+        </Drawer>
       </div>
 
       {/* Tabs Content (Works with both desktop and mobile) */}
@@ -579,10 +624,10 @@ export default function Dashboard() {
                     )}
                     {Object.keys(safeStats.responseTimes || {}).length ===
                       0 && (
-                          <div className="text-sm text-gray-500">
-                            No response time data available
-                          </div>
-                        )}
+                      <div className="text-sm text-gray-500">
+                        No response time data available
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -878,26 +923,41 @@ export default function Dashboard() {
                       <div key={user} className="border-b pb-4 last:border-b-0">
                         <h3 className="text-lg font-medium mb-3">{user}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {(Array.isArray(messages) ? messages : [messages]).map((message, index) => {
+                          {(Array.isArray(messages)
+                            ? messages
+                            : [messages]
+                          ).map((message, index) => {
                             // Ensure message.text is a string
-                            const messageText = typeof message.text === 'string' 
-                              ? message.text 
-                              : String(message.text || '');
-                            
+                            const messageText =
+                              typeof message.text === "string"
+                                ? message.text
+                                : String(message.text || "");
+
                             // Get expansion state with fallback
-                            const isExpanded = Boolean(expandedMessages[user]?.[index]);
-                            console.log(`Message ${user}-${index} expanded:`, isExpanded);
-                            
+                            const isExpanded = Boolean(
+                              expandedMessages[user]?.[index]
+                            );
+                            console.log(
+                              `Message ${user}-${index} expanded:`,
+                              isExpanded
+                            );
+
                             // Only truncate if longer than 100 chars and not expanded
-                            const shouldTruncate = messageText.length > 100 && !isExpanded;
-                            const displayText = shouldTruncate 
-                              ? messageText.substring(0, 100) + "..." 
+                            const shouldTruncate =
+                              messageText.length > 100 && !isExpanded;
+                            const displayText = shouldTruncate
+                              ? messageText.substring(0, 100) + "..."
                               : messageText;
-                            
+
                             return (
-                              <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                              <div
+                                key={index}
+                                className="bg-gray-50 p-3 rounded-lg"
+                              >
                                 <div className="flex justify-between items-center mb-2">
-                                  <span className="text-xs text-gray-500">{message.date || 'Unknown date'}</span>
+                                  <span className="text-xs text-gray-500">
+                                    {message.date || "Unknown date"}
+                                  </span>
                                   <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                                     {message.length} words
                                   </span>
@@ -906,12 +966,16 @@ export default function Dashboard() {
                                   &ldquo;{displayText}&rdquo;
                                 </p>
                                 {messageText.length > 100 && (
-                                  <Button 
-                                    variant="link" 
-                                    size="sm" 
+                                  <Button
+                                    variant="link"
+                                    size="sm"
                                     className="mt-2 h-auto p-0"
                                     onClick={() => {
-                                      console.log("Button clicked for", user, index);
+                                      console.log(
+                                        "Button clicked for",
+                                        user,
+                                        index
+                                      );
                                       toggleMessageExpand(user, index);
                                     }}
                                   >
@@ -925,7 +989,8 @@ export default function Dashboard() {
                       </div>
                     )
                   )}
-                  {Object.keys(safeStats.longestMessages || {}).length === 0 && (
+                  {Object.keys(safeStats.longestMessages || {}).length ===
+                    0 && (
                     <div className="text-sm text-gray-500 text-center py-4">
                       No message data available
                     </div>
@@ -1522,37 +1587,43 @@ export default function Dashboard() {
                 <CardHeader>
                   <CardTitle>Messages per Hour of Day</CardTitle>
                   <CardDescription>
-                    Find peak chat hours to understand when the conversation is most active
+                    Find peak chat hours to understand when the conversation is
+                    most active
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {safeStats.messagesByHour && 
-                   Object.keys(safeStats.messagesByHour).length > 0 ? (
+                  {safeStats.messagesByHour &&
+                  Object.keys(safeStats.messagesByHour).length > 0 ? (
                     <>
                       <div className="h-72">
                         <BarChart
-                          data={Object.entries(safeStats.messagesByHour).map(([hour, count]) => ({
-                            name: `${hour}:00`,
-                            count: count as number,
-                          }))}
+                          data={Object.entries(safeStats.messagesByHour).map(
+                            ([hour, count]) => ({
+                              name: `${hour}:00`,
+                              count: count as number,
+                            })
+                          )}
                           title="Hourly Message Distribution"
                           height={320}
                           barColor="hsl(var(--chart-1))"
                         />
                       </div>
-                      <div className="mt-4 text-sm text-gray-500">
+                      <div className="mt-4 text-xs text-gray-500">
                         <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Peak hours reveal when both parties are typically available to chat
+                          * Peak hours reveal when both parties are typically
+                          available to chat
                         </div>
                       </div>
                     </>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-60 text-center p-4">
-                      <Clock className="h-12 w-12 text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium mb-2">No hourly data available</h3>
-                      <p className="text-sm text-gray-500">
-                        Hourly message distribution data isn&apos;t available in this chat export.
+                      *
+                      <h3 className="text-lg font-medium mb-2">
+                        No hourly data available
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Hourly message distribution data isn&apos;t available in
+                        this chat export.
                       </p>
                     </div>
                   )}
@@ -1568,33 +1639,38 @@ export default function Dashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {safeStats.messagesByDay && 
-                   Object.keys(safeStats.messagesByDay).length > 0 ? (
+                  {safeStats.messagesByDay &&
+                  Object.keys(safeStats.messagesByDay).length > 0 ? (
                     <>
                       <div className="h-72">
                         <BarChart
-                          data={Object.entries(safeStats.messagesByDay).map(([day, count]) => ({
-                            name: day.substring(0, 3),
-                            count: count as number,
-                          }))}
+                          data={Object.entries(safeStats.messagesByDay).map(
+                            ([day, count]) => ({
+                              name: day.substring(0, 3),
+                              count: count as number,
+                            })
+                          )}
                           title="Daily Message Patterns"
                           height={320}
                           barColor="hsl(var(--chart-2))"
                         />
                       </div>
-                      <div className="mt-4 text-sm text-gray-500">
+                      <div className="mt-4 text-xs text-gray-500">
                         <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Weekend patterns often differ from weekday communication styles
+                          * Weekend patterns often differ from weekday
+                          communication styles
                         </div>
                       </div>
                     </>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-60 text-center p-4">
-                      <Clock className="h-12 w-12 text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium mb-2">No daily data available</h3>
-                      <p className="text-sm text-gray-500">
-                        Day of week message distribution data isn&apos;t available in this chat export.
+                      *
+                      <h3 className="text-lg font-medium mb-2">
+                        No daily data available
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Day of week message distribution data isn&apos;t
+                        available in this chat export.
                       </p>
                     </div>
                   )}
@@ -1606,37 +1682,43 @@ export default function Dashboard() {
                 <CardHeader>
                   <CardTitle>Messages per Month</CardTitle>
                   <CardDescription>
-                    Track conversation trends over time to see how the relationship has evolved
+                    Track conversation trends over time to see how the
+                    relationship has evolved
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {safeStats.messagesByMonth && 
-                   Object.keys(safeStats.messagesByMonth).length > 0 ? (
+                  {safeStats.messagesByMonth &&
+                  Object.keys(safeStats.messagesByMonth).length > 0 ? (
                     <>
                       <div className="h-72">
                         <BarChart
-                          data={Object.entries(safeStats.messagesByMonth).map(([month, count]) => ({
-                            name: month,
-                            count: count as number,
-                          }))}
+                          data={Object.entries(safeStats.messagesByMonth).map(
+                            ([month, count]) => ({
+                              name: month,
+                              count: count as number,
+                            })
+                          )}
                           title="Monthly Message Trends"
                           height={320}
                           barColor="hsl(var(--chart-3))"
                         />
                       </div>
-                      <div className="mt-4 text-sm text-gray-500">
+                      <div className="mt-4 text-xs text-gray-500">
                         <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Monthly trends can reveal changes in the relationship dynamics over time
+                          * Monthly trends can reveal changes in the
+                          relationship dynamics over time
                         </div>
                       </div>
                     </>
                   ) : (
                     <div className="flex flex-col items-center justify-center h-60 text-center p-4">
-                      <Clock className="h-12 w-12 text-gray-300 mb-4" />
-                      <h3 className="text-lg font-medium mb-2">No monthly data available</h3>
-                      <p className="text-sm text-gray-500">
-                        Monthly message distribution data isn&apos;t available in this chat export.
+                      *
+                      <h3 className="text-lg font-medium mb-2">
+                        No monthly data available
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        Monthly message distribution data isn&apos;t available
+                        in this chat export.
                       </p>
                     </div>
                   )}
