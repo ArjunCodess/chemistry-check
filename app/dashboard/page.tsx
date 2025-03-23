@@ -17,6 +17,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Menu } from "lucide-react";
 import { BasicStats } from "@/components/dashboard/basic-stats";
 import { ResponseTimes } from "@/components/dashboard/response-times";
+import { ActivityPatterns } from "@/components/dashboard/activity-patterns";
 import { createSafeStats, getMediaByTypeData } from "@/lib/chat-stats";
 import dynamic from "next/dynamic";
 import { ChatStats } from "@/types";
@@ -314,6 +315,13 @@ export default function Dashboard() {
         <TabsContent value="time" className="space-y-6">
           <Suspense fallback={<TabLoadingFallback />}>
             <ResponseTimes stats={safeStats} />
+          </Suspense>
+        </TabsContent>
+
+        {/* Activity Patterns Tab */}
+        <TabsContent value="activity" className="space-y-6">
+          <Suspense fallback={<TabLoadingFallback />}>
+            <ActivityPatterns stats={safeStats} />
           </Suspense>
         </TabsContent>
 
@@ -862,156 +870,6 @@ export default function Dashboard() {
                     <div className="p-8 text-center">
                       <p className="text-slate-500 text-sm">
                         AI-powered interest analysis will appear here after chat upload.
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </Suspense>
-        </TabsContent>
-
-        {/* Activity Patterns Tab */}
-        <TabsContent value="activity" className="space-y-6">
-          <Suspense fallback={<TabLoadingFallback />}>
-            <div className="grid grid-cols-1 gap-6">
-              {/* Messages per Hour of Day */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Messages per Hour of Day</CardTitle>
-                  <CardDescription>
-                    Find peak chat hours to understand when the conversation is
-                    most active
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {safeStats.messagesByHour &&
-                  Object.keys(safeStats.messagesByHour).length > 0 ? (
-                    <>
-                      <div className="h-72">
-                        <BarChart
-                          data={Object.entries(safeStats.messagesByHour).map(
-                            ([hour, count]) => ({
-                              name: `${hour}:00`,
-                              count: count as number,
-                            })
-                          )}
-                          title="Hourly Message Distribution"
-                          height={320}
-                          barColor="hsl(var(--chart-1))"
-                        />
-                      </div>
-                      <div className="mt-4 text-xs text-gray-500">
-                        <div className="flex items-center gap-2">
-                          * Peak hours reveal when both parties are typically
-                          available to chat
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-60 text-center p-4">
-                      *
-                      <h3 className="text-lg font-medium mb-2">
-                        No hourly data available
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        Hourly message distribution data isn&apos;t available in
-                        this chat export.
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Messages per Day of Week */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Messages per Day of Week</CardTitle>
-                  <CardDescription>
-                    Identify which days of the week you communicate most
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {safeStats.messagesByDay &&
-                  Object.keys(safeStats.messagesByDay).length > 0 ? (
-                    <>
-                      <div className="h-72">
-                        <BarChart
-                          data={Object.entries(safeStats.messagesByDay).map(
-                            ([day, count]) => ({
-                              name: day.substring(0, 3),
-                              count: count as number,
-                            })
-                          )}
-                          title="Daily Message Patterns"
-                          height={320}
-                          barColor="hsl(var(--chart-2))"
-                        />
-                      </div>
-                      <div className="mt-4 text-xs text-gray-500">
-                        <div className="flex items-center gap-2">
-                          * Weekend patterns often differ from weekday
-                          communication styles
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-60 text-center p-4">
-                      *
-                      <h3 className="text-lg font-medium mb-2">
-                        No daily data available
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        Day of week message distribution data isn&apos;t
-                        available in this chat export.
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Messages per Month */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Messages per Month</CardTitle>
-                  <CardDescription>
-                    Track conversation trends over time to see how the
-                    relationship has evolved
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {safeStats.messagesByMonth &&
-                  Object.keys(safeStats.messagesByMonth).length > 0 ? (
-                    <>
-                      <div className="h-72">
-                        <BarChart
-                          data={Object.entries(safeStats.messagesByMonth).map(
-                            ([month, count]) => ({
-                              name: month,
-                              count: count as number,
-                            })
-                          )}
-                          title="Monthly Message Trends"
-                          height={320}
-                          barColor="hsl(var(--chart-3))"
-                        />
-                      </div>
-                      <div className="mt-4 text-xs text-gray-500">
-                        <div className="flex items-center gap-2">
-                          * Monthly trends can reveal changes in the
-                          relationship dynamics over time
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center h-60 text-center p-4">
-                      *
-                      <h3 className="text-lg font-medium mb-2">
-                        No monthly data available
-                      </h3>
-                      <p className="text-xs text-gray-500">
-                        Monthly message distribution data isn&apos;t available
-                        in this chat export.
                       </p>
                     </div>
                   )}
