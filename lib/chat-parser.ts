@@ -114,6 +114,7 @@ export interface ChatStats {
   messagesByHour?: Record<string, number>;
   messagesByDay?: Record<string, number>;
   messagesByMonth?: Record<string, number>;
+  sorryByUser?: Record<string, number>;
 }
 
 export function parseChatData(data: ChatData) {
@@ -159,7 +160,8 @@ export function parseChatData(data: ChatData) {
       longestMessages: {},
       messagesByHour: {},
       messagesByDay: {},
-      messagesByMonth: {}
+      messagesByMonth: {},
+      sorryByUser: {}
     };
   }
   
@@ -211,7 +213,8 @@ export function parseChatData(data: ChatData) {
     longestMessages: {} as Record<string, Array<{ text: string; length: number; date: string }>>,
     messagesByHour: {} as Record<string, number>,
     messagesByDay: {} as Record<string, number>,
-    messagesByMonth: {} as Record<string, number>
+    messagesByMonth: {} as Record<string, number>,
+    sorryByUser: {} as Record<string, number>
   };
   
   // Track message counts and word counts by user
@@ -252,7 +255,7 @@ export function parseChatData(data: ChatData) {
     }
     
     // Extract user, skip if unknown
-    const user = message.from;
+    const user = message.from || "unknown";
     if (!user || user === "unknown") {
       console.log(`Skipping message from unknown user at index ${index}`);
       return;
@@ -296,6 +299,17 @@ export function parseChatData(data: ChatData) {
         : Array.isArray(message.text) 
           ? message.text.map(t => typeof t === 'string' ? t : t.text).join(' ')
           : '';
+      
+      // Check for sorry/apologies
+      const normalizedText = messageText.toLowerCase().trim();
+      if (normalizedText.includes('sorry') || 
+          normalizedText.includes('apolog') || 
+          normalizedText.includes('regret') || 
+          normalizedText.includes('forgive') ||
+          normalizedText.includes('my bad') ||
+          normalizedText.includes('my fault')) {
+        stats.sorryByUser[user] = (stats.sorryByUser[user] || 0) + 1;
+      }
       
       // Count words with simplified logic
       const words = messageText
@@ -347,7 +361,7 @@ export function parseChatData(data: ChatData) {
       }
 
       // Count word frequency with basic cleaning
-      words.forEach(word => {
+      words.forEach((word: string) => {
         // Simple clean to lowercase
         const cleanWord = word.toLowerCase().replace(/[^\w\s]/g, '');
         if (cleanWord && cleanWord.length > 0) { // Count all words including single letters

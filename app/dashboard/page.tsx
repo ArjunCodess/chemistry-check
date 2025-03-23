@@ -136,6 +136,7 @@ interface ChatStats {
   messagesByHour?: Record<string, number>;
   messagesByDay?: Record<string, number>;
   messagesByMonth?: Record<string, number>;
+  sorryByUser?: Record<string, number>;
 }
 
 export default function Dashboard() {
@@ -282,6 +283,7 @@ export default function Dashboard() {
         biggestGaps: stats.biggestGaps || [],
         wordFrequencyByUser: stats.wordFrequencyByUser || {},
         longestMessages: stats.longestMessages || {},
+        sorryByUser: stats.sorryByUser || {},
       }
     : {
         totalMessages: 0,
@@ -320,6 +322,7 @@ export default function Dashboard() {
         biggestGaps: [],
         wordFrequencyByUser: {},
         longestMessages: {},
+        sorryByUser: {},
       };
 
   console.log("Stats loaded successfully:", {
@@ -1518,7 +1521,44 @@ export default function Dashboard() {
         {/* New Phrase Analysis Tab */}
         <TabsContent value="phrases" className="space-y-6">
           <Suspense fallback={<TabLoadingFallback />}>
-            {/* Word Cloud in full-width first row */}
+            {/* Who Says Sorry More card */}
+            <div className="mb-6">
+              <Card className="w-full flex md:flex-row justify-between">
+                <CardHeader className="md:w-1/2">
+                  <CardTitle className="text-lg">Who Says<br className="hidden md:block" />{" "}Sorry More?</CardTitle>
+                </CardHeader>
+                <CardContent className="md:text-right">
+                  {safeStats?.sorryByUser && Object.keys(safeStats.sorryByUser).length > 0 ? (
+                    (() => {
+                      // Find user with most sorries
+                      const sortedUsers = Object.entries(safeStats.sorryByUser)
+                        .sort(([, a], [, b]) => (b as number) - (a as number));
+                      
+                      if (sortedUsers.length === 0) return <p>No apologies found in chat.</p>;
+                      
+                      const [topUser, topCount] = sortedUsers[0];
+                      const totalSorries = Object.values(safeStats.sorryByUser).reduce((sum, count) => sum + (count as number), 0);
+                      const percentage = Math.round((topCount as number) / totalSorries * 100);
+                      
+                      return (
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-medium text-lg">{topUser}</span>
+                            <p className="text-sm text-muted-foreground">
+                              Said sorry {topCount} times ({percentage}% of all apologies)
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })()
+                  ) : (
+                    <p>No data available</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Word Cloud in full-width row */}
             <div className="mb-6">
               <Suspense
                 fallback={
