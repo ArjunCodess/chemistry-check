@@ -1,10 +1,13 @@
-import { parseChatData } from '@/lib/chat-parser';
+import { parseChatData as parseTelegramChatData } from '@/lib/telegram-chat-parser';
+// import { parseChatData as parseInstagramChatData } from '@/lib/instagram-chat-parser';
+// import { parseChatData as parseWhatsappChatData } from '@/lib/whatsapp-chat-parser';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const platform = formData.get('platform') as string;
 
     if (!file) {
       return NextResponse.json(
@@ -13,12 +16,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!platform) {
+      return NextResponse.json(
+        { error: 'No platform specified' },
+        { status: 400 }
+      );
+    }
+
     // Read file content
     const text = await file.text();
     const chatData = JSON.parse(text);
 
-    // Parse chat data
-    const stats = await parseChatData(chatData);
+    // Parse chat data based on platform
+    let stats;
+    switch (platform) {
+      case 'telegram':
+        stats = await parseTelegramChatData(chatData);
+        break;
+      // case 'instagram':
+      //   stats = await parseInstagramChatData(chatData);
+      //   break;
+      // case 'whatsapp':
+      //   stats = await parseWhatsappChatData(chatData);
+      //   break;
+      default:
+        return NextResponse.json(
+          { error: 'Invalid platform specified' },
+          { status: 400 }
+        );
+    }
 
     return NextResponse.json(stats);
   } catch (error) {
@@ -28,4 +54,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
