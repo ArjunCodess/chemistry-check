@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const chatData = JSON.parse(text);
 
     // Parse chat data
-    const stats = parseChatData(chatData);
+    const stats = await parseChatData(chatData);
 
     return NextResponse.json(stats);
   } catch (error) {

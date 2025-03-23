@@ -88,6 +88,35 @@ interface EmojiStats {
   };
 }
 
+// AI Insights interfaces
+interface RelationshipHealthScore {
+  overall: number;
+  details: {
+    balance: number;
+    engagement: number;
+    positivity: number;
+    consistency: number;
+  };
+  redFlags?: string[];
+}
+
+interface InterestPercentage {
+  score: number;
+  details: {
+    initiation: number;
+    responseRate: number;
+    enthusiasm: number;
+    consistency: number;
+  };
+}
+
+// Cooked status interface
+interface CookedStatus {
+  isCooked: boolean;
+  user: string;
+  confidence: number; // 0-100
+}
+
 export interface ChatStats {
   totalMessages: number;
   messagesByUser: Record<string, number>;
@@ -115,9 +144,233 @@ export interface ChatStats {
   messagesByDay?: Record<string, number>;
   messagesByMonth?: Record<string, number>;
   sorryByUser?: Record<string, number>;
+  // AI Insights fields
+  aiSummary?: string;
+  relationshipHealthScore?: RelationshipHealthScore;
+  interestPercentage?: Record<string, InterestPercentage>;
+  cookedStatus?: CookedStatus;
 }
 
-export function parseChatData(data: ChatData) {
+// Function to call Gemini API for generating AI insights
+async function generateAIInsights(data: ChatData, stats: ChatStats): Promise<{
+  aiSummary: string;
+  relationshipHealthScore: RelationshipHealthScore;
+  interestPercentage: Record<string, InterestPercentage>;
+  cookedStatus: CookedStatus;
+}> {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      console.error("GEMINI_API_KEY is not set in environment variables");
+      return getDefaultAIInsights(stats);
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY;
+    const apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent";
+    
+    // Create a summary of the chat data to send to the API
+    const chatSummary = {
+      totalMessages: stats.totalMessages,
+      messagesByUser: stats.messagesByUser,
+      totalWords: stats.totalWords,
+      wordsByUser: stats.wordsByUser,
+      mostUsedWords: stats.mostUsedWords?.slice(0, 10),
+      mostUsedEmojis: stats.mostUsedEmojis?.slice(0, 10),
+      responseTimes: stats.responseTimes,
+      commonPhrases: stats.commonPhrases?.slice(0, 10),
+      overusedPhrases: stats.overusedPhrases,
+      biggestGaps: stats.biggestGaps?.slice(0, 5),
+      longestMessages: stats.longestMessages,
+      messagesByHour: stats.messagesByHour,
+      messagesByDay: stats.messagesByDay,
+      messagesByMonth: stats.messagesByMonth,
+      sorryByUser: stats.sorryByUser,
+    };
+    
+    // Prepare sample messages
+    const sampleMessages = data.messages
+      .filter(m => m.text && typeof m.text === 'string')
+      .slice(-50) // Get the most recent 50 messages with text
+      .map(m => ({
+        from: m.from,
+        text: typeof m.text === 'string' ? m.text : Array.isArray(m.text) ? m.text.map(t => typeof t === 'string' ? t : t.text).join(' ') : '',
+        date: m.date
+      }));
+    
+    // Create the prompt for the AI
+    const prompt = `
+      You are an expert in analyzing chat conversations. Based on the provided chat statistics and sample messages, please generate:
+      
+      1. A 3-4 paragraph chat summary that describes the overall relationship dynamics, communication patterns, and whether there are any signs that one person is "cooked" (showing significantly more interest than the other).
+      
+      2. A relationship health score from 0-100 with detailed subscores for:
+         - Balance (equal participation): 0-100
+         - Engagement (active participation): 0-100
+         - Positivity (positive sentiment): 0-100
+         - Consistency (regular communication): 0-100
+      
+      3. List of potential red flags in the relationship (if any)
+      
+      4. Interest percentage for each participant on a scale of 0-100, with subscores for:
+         - Initiation (who starts conversations): 0-100
+         - Response Rate (how quickly/reliably they respond): 0-100
+         - Enthusiasm (message length, emoji/media usage): 0-100
+         - Consistency (regular participation): 0-100
+         
+      5. Determine if one user is "cooked" - meaning they're showing much more interest or effort in the conversation than the other. 
+         Being "cooked" means they're clearly more invested in the relationship/conversation.
+      
+      Chat Statistics:
+      ${JSON.stringify(chatSummary, null, 2)}
+      
+      Sample Messages:
+      ${JSON.stringify(sampleMessages, null, 2)}
+      
+      Respond in the following JSON format only:
+      {
+        "aiSummary": "detailed 3-4 paragraph summary of chat dynamics",
+        "relationshipHealthScore": {
+          "overall": 75,
+          "details": {
+            "balance": 80,
+            "engagement": 85,
+            "positivity": 70,
+            "consistency": 65
+          },
+          "redFlags": ["flag1", "flag2"]
+        },
+        "interestPercentage": {
+          "User1": {
+            "score": 85,
+            "details": {
+              "initiation": 90,
+              "responseRate": 80,
+              "enthusiasm": 85,
+              "consistency": 85
+            }
+          },
+          "User2": {
+            "score": 70,
+            "details": {
+              "initiation": 60,
+              "responseRate": 75,
+              "enthusiasm": 65,
+              "consistency": 80
+            }
+          }
+        },
+        "cookedStatus": {
+          "isCooked": true,
+          "user": "User1",
+          "confidence": 90
+        }
+      }
+    `;
+    
+    // Call the Gemini API
+    const response = await fetch(`${apiUrl}?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 1000,
+        }
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (!response.ok) {
+      console.error("Error calling Gemini API:", result);
+      return getDefaultAIInsights(stats);
+    }
+    
+    try {
+      // Extract the response text from Gemini
+      const responseText = result.candidates[0].content.parts[0].text;
+      
+      // Parse the JSON response
+      // Use regex to extract the JSON part if needed
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      const jsonString = jsonMatch ? jsonMatch[0] : responseText;
+      
+      const insights = JSON.parse(jsonString);
+      
+      return {
+        aiSummary: insights.aiSummary,
+        relationshipHealthScore: insights.relationshipHealthScore,
+        interestPercentage: insights.interestPercentage,
+        cookedStatus: insights.cookedStatus
+      };
+    } catch (parseError) {
+      console.error("Error parsing Gemini API response:", parseError);
+      return getDefaultAIInsights(stats);
+    }
+  } catch (error) {
+    console.error("Error generating AI insights:", error);
+    return getDefaultAIInsights(stats);
+  }
+}
+
+// Fallback function for default AI insights when API call fails
+function getDefaultAIInsights(stats: ChatStats): {
+  aiSummary: string;
+  relationshipHealthScore: RelationshipHealthScore;
+  interestPercentage: Record<string, InterestPercentage>;
+  cookedStatus: CookedStatus;
+} {
+  // Get users from the stats
+  const users = Object.keys(stats.messagesByUser || {});
+  
+  // Create default insights
+  const defaultInsights = {
+    aiSummary: "AI chat summary could not be generated. Please try again later.",
+    relationshipHealthScore: {
+      overall: 50,
+      details: {
+        balance: 50,
+        engagement: 50,
+        positivity: 50,
+        consistency: 50
+      },
+      redFlags: []
+    },
+    interestPercentage: {} as Record<string, InterestPercentage>,
+    cookedStatus: {
+      isCooked: false,
+      user: users.length > 0 ? users[0] : "Unknown",
+      confidence: 0
+    }
+  };
+  
+  // Add interest percentage for each user
+  users.forEach(user => {
+    defaultInsights.interestPercentage[user] = {
+      score: 50,
+      details: {
+        initiation: 50,
+        responseRate: 50,
+        enthusiasm: 50,
+        consistency: 50
+      }
+    };
+  });
+  
+  return defaultInsights;
+}
+
+export async function parseChatData(data: ChatData) {
   console.log("Starting to parse chat data with", data.messages?.length || 0, "messages");
   
   // Check if valid data is provided
@@ -161,7 +414,25 @@ export function parseChatData(data: ChatData) {
       messagesByHour: {},
       messagesByDay: {},
       messagesByMonth: {},
-      sorryByUser: {}
+      sorryByUser: {},
+      // AI Insights fields
+      aiSummary: "No data available for AI analysis.",
+      relationshipHealthScore: {
+        overall: 0,
+        details: {
+          balance: 0,
+          engagement: 0,
+          positivity: 0,
+          consistency: 0
+        },
+        redFlags: ["No data provided"]
+      },
+      interestPercentage: {},
+      cookedStatus: {
+        isCooked: false,
+        user: "Unknown",
+        confidence: 0
+      }
     };
   }
   
@@ -214,7 +485,12 @@ export function parseChatData(data: ChatData) {
     messagesByHour: {} as Record<string, number>,
     messagesByDay: {} as Record<string, number>,
     messagesByMonth: {} as Record<string, number>,
-    sorryByUser: {} as Record<string, number>
+    sorryByUser: {} as Record<string, number>,
+    // AI Insights fields
+    aiSummary: undefined as string | undefined,
+    relationshipHealthScore: undefined as RelationshipHealthScore | undefined,
+    interestPercentage: {} as Record<string, InterestPercentage> | undefined,
+    cookedStatus: undefined as CookedStatus | undefined
   };
   
   // Track message counts and word counts by user
@@ -799,6 +1075,22 @@ export function parseChatData(data: ChatData) {
   const phraseAnalysis = analyzePhrases(data.messages, Object.keys(stats.messagesByUser));
   stats.commonPhrases = phraseAnalysis.commonPhrases;
   stats.overusedPhrases = phraseAnalysis.overusedPhrases;
+
+  // Generate AI insights
+  try {
+    console.log("Generating AI insights...");
+    const aiInsights = await generateAIInsights(data, stats);
+    
+    // Add AI insights to the stats object
+    stats.aiSummary = aiInsights.aiSummary;
+    stats.relationshipHealthScore = aiInsights.relationshipHealthScore;
+    stats.interestPercentage = aiInsights.interestPercentage;
+    stats.cookedStatus = aiInsights.cookedStatus;
+    
+    console.log("AI insights generated successfully");
+  } catch (error) {
+    console.error("Error generating AI insights:", error);
+  }
 
   return stats;
 }

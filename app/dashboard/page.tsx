@@ -137,6 +137,31 @@ interface ChatStats {
   messagesByDay?: Record<string, number>;
   messagesByMonth?: Record<string, number>;
   sorryByUser?: Record<string, number>;
+  aiSummary?: string;
+  relationshipHealthScore?: {
+    overall: number;
+    details: {
+      balance: number;
+      engagement: number;
+      positivity: number;
+      consistency: number;
+    };
+    redFlags?: string[];
+  };
+  interestPercentage?: Record<string, {
+    score: number;
+    details: {
+      initiation: number;
+      responseRate: number;
+      enthusiasm: number;
+      consistency: number;
+    };
+  }>;
+  cookedStatus?: {
+    isCooked: boolean;
+    user: string;
+    confidence: number;
+  };
 }
 
 export default function Dashboard() {
@@ -378,6 +403,7 @@ export default function Dashboard() {
             <TabsTrigger value="media">Media</TabsTrigger>
             <TabsTrigger value="emoji">Emoji Analysis</TabsTrigger>
             <TabsTrigger value="phrases">Phrase Analysis</TabsTrigger>
+            <TabsTrigger value="ai">AI Insights</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -401,6 +427,8 @@ export default function Dashboard() {
                   ? "Emoji Analysis"
                   : activeTab === "phrases"
                   ? "Phrase Analysis"
+                  : activeTab === "ai"
+                  ? "AI Insights"
                   : "Activity Patterns"}
               </span>
               <Menu className="h-4 w-4" />
@@ -467,6 +495,16 @@ export default function Dashboard() {
                 className="justify-start"
               >
                 Activity Patterns
+              </Button>
+              <Button
+                variant={activeTab === "ai" ? "default" : "ghost"}
+                onClick={() => {
+                  setActiveTab("ai");
+                  setDrawerOpen(false);
+                }}
+                className="justify-start"
+              >
+                AI Insights
               </Button>
             </div>
           </DrawerContent>
@@ -1518,7 +1556,7 @@ export default function Dashboard() {
           </Suspense>
         </TabsContent>
 
-        {/* New Phrase Analysis Tab */}
+        {/* Phrase Analysis Tab */}
         <TabsContent value="phrases" className="space-y-6">
           <Suspense fallback={<TabLoadingFallback />}>
             {/* Who Says Sorry More card */}
@@ -1612,6 +1650,243 @@ export default function Dashboard() {
                       )
                     )}
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </Suspense>
+        </TabsContent>
+
+        {/* AI Insights Tab */}
+        <TabsContent value="ai" className="space-y-6">
+          <Suspense fallback={<TabLoadingFallback />}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* AI Chat Summary Card */}
+              <Card className="col-span-1 md:col-span-2">
+                <CardHeader>
+                  <CardTitle>AI-Generated Chat Summary</CardTitle>
+                  <CardDescription>
+                    A TL;DR of what your chat is really about, including key patterns and dynamics.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {safeStats.aiSummary ? (
+                    <div>
+                      {/* Cooked Status Alert */}
+                      {safeStats.cookedStatus?.isCooked && (
+                        <div className="mb-6 p-6 bg-gradient-to-r from-red-500 to-orange-500 rounded-md shadow-lg">
+                          <h2 className="text-3xl md:text-4xl font-extrabold text-white text-center tracking-wide drop-shadow-md" 
+                              style={{ animation: "cookedTextPulse 2s infinite" }}>
+                            {safeStats.cookedStatus.user} IS COOKED!
+                          </h2>
+                          <p className="text-sm text-center text-white mt-2 font-medium">
+                            Confidence: {safeStats.cookedStatus.confidence}%
+                          </p>
+                          <style jsx>{`
+                            @keyframes cookedTextPulse {
+                              0%, 100% { transform: scale(1); }
+                              50% { transform: scale(1.05); }
+                            }
+                          `}</style>
+                        </div>
+                      )}
+                      <div className="p-4 bg-slate-50 rounded-lg antialiased">
+                        <p className="whitespace-pre-line text-xs md:text-sm">{safeStats.aiSummary}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <div className="mb-4 bg-slate-100 p-4 rounded-full">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="text-slate-400"
+                        >
+                          <path d="M12 2a7.5 7.5 0 0 0-5.3 12.9L12 21l5.3-6.1A7.5 7.5 0 0 0 12 2Z" />
+                          <path d="M12 6.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 1 0 0-7z" />
+                        </svg>
+                      </div>
+                      <h3 className="text-lg font-semibold mb-2">AI Summary Not Available</h3>
+                      <p className="text-slate-500 text-sm max-w-md">
+                        Upload your chat history to generate an AI-powered summary of your conversation dynamics.
+                      </p>
+                      <Button className="mt-4" onClick={handleUploadNewChat}>Upload Chat</Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Relationship Health Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Relationship Health Score</CardTitle>
+                  <CardDescription>
+                    AI evaluation of the overall communication quality and balance.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {safeStats.relationshipHealthScore ? (
+                    <div className="space-y-6">
+                      {/* Overall score meter */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Overall Health</span>
+                          <span className="font-medium">{safeStats.relationshipHealthScore.overall}/100</span>
+                        </div>
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${
+                              safeStats.relationshipHealthScore.overall >= 80 ? "bg-green-500" :
+                              safeStats.relationshipHealthScore.overall >= 60 ? "bg-yellow-500" :
+                              safeStats.relationshipHealthScore.overall >= 40 ? "bg-orange-500" : "bg-red-500"
+                            }`}
+                            style={{ width: `${safeStats.relationshipHealthScore.overall}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Detail scores */}
+                      <div className="space-y-2">
+                        <h4 className="font-medium text-sm">Details</h4>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span>Balance</span>
+                              <span>{safeStats.relationshipHealthScore.details.balance}/100</span>
+                            </div>
+                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                className="bg-blue-500 h-full" 
+                                style={{ width: `${safeStats.relationshipHealthScore.details.balance}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span>Engagement</span>
+                              <span>{safeStats.relationshipHealthScore.details.engagement}/100</span>
+                            </div>
+                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                className="bg-blue-500 h-full" 
+                                style={{ width: `${safeStats.relationshipHealthScore.details.engagement}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span>Positivity</span>
+                              <span>{safeStats.relationshipHealthScore.details.positivity}/100</span>
+                            </div>
+                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                className="bg-blue-500 h-full" 
+                                style={{ width: `${safeStats.relationshipHealthScore.details.positivity}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span>Consistency</span>
+                              <span>{safeStats.relationshipHealthScore.details.consistency}/100</span>
+                            </div>
+                            <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                className="bg-blue-500 h-full" 
+                                style={{ width: `${safeStats.relationshipHealthScore.details.consistency}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Red flags */}
+                      {safeStats.relationshipHealthScore.redFlags && 
+                       safeStats.relationshipHealthScore.redFlags.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-medium text-sm text-red-500">Potential Red Flags</h4>
+                          <ul className="space-y-1 list-disc pl-5 text-xs text-red-600">
+                            {safeStats.relationshipHealthScore.redFlags.map((flag, index) => (
+                              <li key={index}>{flag}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center">
+                      <p className="text-slate-500 text-sm">
+                        AI-powered relationship health analysis will appear here after chat upload.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Interest Percentage Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Interest Percentage</CardTitle>
+                  <CardDescription>
+                    How engaged each person is in the conversation based on various factors.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {safeStats.interestPercentage && Object.keys(safeStats.interestPercentage).length > 0 ? (
+                    <div className="space-y-6">
+                      {Object.entries(safeStats.interestPercentage).map(([user, data]) => (
+                        <div key={user} className="space-y-4 border-b pb-4 last:border-b-0">
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="font-medium">{user}</span>
+                              <span className="font-medium">{data.score}/100</span>
+                            </div>
+                            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full ${
+                                  data.score >= 80 ? "bg-green-500" :
+                                  data.score >= 60 ? "bg-blue-500" :
+                                  data.score >= 40 ? "bg-yellow-500" : "bg-red-500"
+                                }`}
+                                style={{ width: `${data.score}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span>Initiation</span>
+                              <span>{data.details.initiation}/100</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Response Rate</span>
+                              <span>{data.details.responseRate}/100</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Enthusiasm</span>
+                              <span>{data.details.enthusiasm}/100</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Consistency</span>
+                              <span>{data.details.consistency}/100</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center">
+                      <p className="text-slate-500 text-sm">
+                        AI-powered interest analysis will appear here after chat upload.
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
