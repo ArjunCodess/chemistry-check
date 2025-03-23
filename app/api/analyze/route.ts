@@ -1,6 +1,6 @@
-import { parseChatData as parseTelegramChatData } from '@/lib/telegram-chat-parser';
-// import { parseChatData as parseInstagramChatData } from '@/lib/instagram-chat-parser';
-// import { parseChatData as parseWhatsappChatData } from '@/lib/whatsapp-chat-parser';
+import { parseChatData as parseTelegramChatData } from '@/lib/chat-parser/telegram';
+// import { parseChatData as parseInstagramChatData } from '@/lib/chat-parser/instagram';
+// import { parseChatData as parseWhatsappChatData } from '@/lib/chat-parser/whatsapp';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
