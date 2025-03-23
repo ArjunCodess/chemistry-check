@@ -41,12 +41,7 @@ export default function Home() {
       // Store stats in localStorage for the dashboard
       localStorage.setItem('chatStats', JSON.stringify(stats));
       
-      toast.success('Chat analysis complete!', {
-        description: 'Redirecting to dashboard...',
-        duration: 3000,
-        className: 'bg-white text-black',
-        descriptionClassName: 'text-black',
-      });
+      toast.success('Chat analysis complete!');
       
       // Add a small delay before redirecting to show the toast
       setTimeout(() => {
@@ -54,33 +49,28 @@ export default function Home() {
       }, 1500);
     } catch (error) {
       console.error('Error uploading file:', error);
-      toast.error('Failed to analyze chat', {
-        description: error instanceof Error ? error.message : 'An unexpected error occurred',
-        duration: 4000,
-        className: 'bg-white text-black',
-        descriptionClassName: 'text-black',
-      });
+      toast.error('Failed to analyze chat');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-100 to-white p-8">
-      <div className="max-w-2xl mx-auto">
-        <Card className="bg-white/80 backdrop-blur-sm border-gray-200">
-          <CardHeader>
-            <CardTitle className="text-3xl font-bold text-gray-900">TeXtRay</CardTitle>
-            <CardDescription className="text-lg text-gray-600">
+    <main className="min-h-screen bg-gradient-to-b from-gray-100 to-white px-4 sm:p-6 md:p-8">
+      <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl mx-auto">
+        <Card className="bg-white/80 backdrop-blur-sm border-gray-200 shadow-sm">
+          <CardHeader className="space-y-1 sm:space-y-2 px-4 sm:px-6">
+            <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">TeXtRay</CardTitle>
+            <CardDescription className="text-sm sm:text-base text-gray-600">
               Upload your chat history to analyze communication patterns and get insights
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
+          <CardContent className="px-4 sm:px-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+              <div className="space-y-1 sm:space-y-2">
                 <label 
                   htmlFor="file" 
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-xs sm:text-sm font-medium text-gray-700"
                 >
                   Upload Chat File
                 </label>
@@ -89,10 +79,10 @@ export default function Home() {
                   id="file"
                   accept=".json"
                   onChange={handleFileChange}
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
+                  className="block w-full text-xs sm:text-sm text-gray-500
+                    file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-2 sm:file:px-4
                     file:rounded-md file:border-0
-                    file:text-sm file:font-semibold
+                    file:text-xs sm:file:text-sm file:font-semibold
                     file:bg-blue-50 file:text-blue-700
                     hover:file:bg-blue-100
                     cursor-pointer"
@@ -102,7 +92,7 @@ export default function Home() {
               <Button 
                 type="submit" 
                 disabled={!file || isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base transition-colors"
               >
                 {isLoading ? 'Analyzing...' : 'Analyze Chat'}
               </Button>

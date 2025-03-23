@@ -79,20 +79,6 @@
   }
 }
 
-@layer components {
-  .btn-primary {
-    @apply px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors;
-  }
-
-  .card {
-    @apply bg-white rounded-xl shadow-lg p-6;
-  }
-
-  .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500;
-  }
-}
-
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);

@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
@@ -128,6 +128,9 @@ interface ChatStats {
   emojiFrequency: Record<string, number>;
   wordFrequencyByUser: Record<string, Record<string, number>>;
   longestMessages: Record<string, Array<{ text: string; length: number; date: string }>>;
+  messagesByHour?: Record<string, number>;
+  messagesByDay?: Record<string, number>;
+  messagesByMonth?: Record<string, number>;
 }
 
 export default function Dashboard() {
@@ -164,12 +167,7 @@ export default function Dashboard() {
       const savedData = localStorage.getItem("chatStats");
 
       if (!savedData) {
-        toast.error("No chat data found", {
-          description: "Please upload a chat file first",
-          duration: 4000,
-          className: "bg-white text-black",
-          descriptionClassName: "text-black",
-        });
+        toast.error("No chat data found");
         router.push("/");
         return;
       }
@@ -187,19 +185,13 @@ export default function Dashboard() {
         cachedAt: timestamp,
       });
 
+      // Remove all sample data - don't add any fake data
+
       setStats(parsedStats);
       setCacheTimestamp(timestamp);
     } catch (error) {
       console.error("Error loading chat stats:", error);
-      toast.error("Failed to load chat data", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred",
-        duration: 4000,
-        className: "bg-white text-black",
-        descriptionClassName: "text-black",
-      });
+      toast.error("Failed to load chat data");
       router.push("/");
     } finally {
       setIsLoading(false);
@@ -342,7 +334,7 @@ export default function Dashboard() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Chat Analytics</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Chat Analytics</h1>
           {cacheTimestamp && (
             <p className="text-sm text-gray-500 mt-1">
               Analysis from {new Date(cacheTimestamp).toLocaleString()}
@@ -360,6 +352,7 @@ export default function Dashboard() {
           <TabsList className="mb-6 w-full">
             <TabsTrigger value="basic">Basic Stats</TabsTrigger>
             <TabsTrigger value="time">Response Times</TabsTrigger>
+            <TabsTrigger value="activity">Activity Patterns</TabsTrigger>
             <TabsTrigger value="media">Media</TabsTrigger>
             <TabsTrigger value="emoji">Emoji Analysis</TabsTrigger>
             <TabsTrigger value="phrases">Phrase Analysis</TabsTrigger>
@@ -377,12 +370,13 @@ export default function Dashboard() {
                 activeTab === "time" ? "Response Times" :
                 activeTab === "media" ? "Media" :
                 activeTab === "emoji" ? "Emoji Analysis" :
-                "Phrase Analysis"
+                activeTab === "phrases" ? "Phrase Analysis" :
+                "Activity Patterns"
               }</span>
               <Menu className="h-4 w-4" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-96 px-4">
+          <SheetContent side="bottom" className="h-[30rem] px-4">
             <div className="grid grid-cols-1 gap-4 pt-14">
               <Button 
                 variant={activeTab === "basic" ? "default" : "ghost"} 
@@ -418,6 +412,13 @@ export default function Dashboard() {
                 className="justify-start"
               >
                 Phrase Analysis
+              </Button>
+              <Button 
+                variant={activeTab === "activity" ? "default" : "ghost"} 
+                onClick={() => setActiveTab("activity")}
+                className="justify-start"
+              >
+                Activity Patterns
               </Button>
             </div>
           </SheetContent>
@@ -1506,6 +1507,139 @@ export default function Dashboard() {
                       )
                     )}
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+          </Suspense>
+        </TabsContent>
+
+        {/* Activity Patterns Tab */}
+        <TabsContent value="activity" className="space-y-6">
+          <Suspense fallback={<TabLoadingFallback />}>
+            <div className="grid grid-cols-1 gap-6">
+              {/* Messages per Hour of Day */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Messages per Hour of Day</CardTitle>
+                  <CardDescription>
+                    Find peak chat hours to understand when the conversation is most active
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {safeStats.messagesByHour && 
+                   Object.keys(safeStats.messagesByHour).length > 0 ? (
+                    <>
+                      <div className="h-72">
+                        <BarChart
+                          data={Object.entries(safeStats.messagesByHour).map(([hour, count]) => ({
+                            name: `${hour}:00`,
+                            count: count as number,
+                          }))}
+                          title="Hourly Message Distribution"
+                          height={320}
+                          barColor="hsl(var(--chart-1))"
+                        />
+                      </div>
+                      <div className="mt-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Peak hours reveal when both parties are typically available to chat
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-60 text-center p-4">
+                      <Clock className="h-12 w-12 text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No hourly data available</h3>
+                      <p className="text-sm text-gray-500">
+                        Hourly message distribution data isn&apos;t available in this chat export.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Messages per Day of Week */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Messages per Day of Week</CardTitle>
+                  <CardDescription>
+                    Identify which days of the week you communicate most
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {safeStats.messagesByDay && 
+                   Object.keys(safeStats.messagesByDay).length > 0 ? (
+                    <>
+                      <div className="h-72">
+                        <BarChart
+                          data={Object.entries(safeStats.messagesByDay).map(([day, count]) => ({
+                            name: day.substring(0, 3),
+                            count: count as number,
+                          }))}
+                          title="Daily Message Patterns"
+                          height={320}
+                          barColor="hsl(var(--chart-2))"
+                        />
+                      </div>
+                      <div className="mt-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Weekend patterns often differ from weekday communication styles
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-60 text-center p-4">
+                      <Clock className="h-12 w-12 text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No daily data available</h3>
+                      <p className="text-sm text-gray-500">
+                        Day of week message distribution data isn&apos;t available in this chat export.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Messages per Month */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Messages per Month</CardTitle>
+                  <CardDescription>
+                    Track conversation trends over time to see how the relationship has evolved
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {safeStats.messagesByMonth && 
+                   Object.keys(safeStats.messagesByMonth).length > 0 ? (
+                    <>
+                      <div className="h-72">
+                        <BarChart
+                          data={Object.entries(safeStats.messagesByMonth).map(([month, count]) => ({
+                            name: month,
+                            count: count as number,
+                          }))}
+                          title="Monthly Message Trends"
+                          height={320}
+                          barColor="hsl(var(--chart-3))"
+                        />
+                      </div>
+                      <div className="mt-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Monthly trends can reveal changes in the relationship dynamics over time
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-60 text-center p-4">
+                      <Clock className="h-12 w-12 text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium mb-2">No monthly data available</h3>
+                      <p className="text-sm text-gray-500">
+                        Monthly message distribution data isn&apos;t available in this chat export.
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

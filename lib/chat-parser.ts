@@ -111,6 +111,9 @@ export interface ChatStats {
   gapAnalysis?: Record<string, Array<{ time: string; duration: number }>>;
   biggestGaps?: Array<{ user: string; duration: number; date: string }>;
   longestMessages?: Record<string, Array<{ text: string; length: number; date: string }>>;
+  messagesByHour?: Record<string, number>;
+  messagesByDay?: Record<string, number>;
+  messagesByMonth?: Record<string, number>;
 }
 
 export function parseChatData(data: ChatData) {
@@ -153,7 +156,10 @@ export function parseChatData(data: ChatData) {
       gapTrends: [],
       gapAnalysis: {},
       biggestGaps: [],
-      longestMessages: {}
+      longestMessages: {},
+      messagesByHour: {},
+      messagesByDay: {},
+      messagesByMonth: {}
     };
   }
   
@@ -202,7 +208,10 @@ export function parseChatData(data: ChatData) {
     gapTrends: [] as Array<{ time: string; duration: number }>,
     gapAnalysis: {} as Record<string, Array<{ time: string; duration: number }>>,
     biggestGaps: [] as Array<{ user: string; duration: number; date: string }>,
-    longestMessages: {} as Record<string, Array<{ text: string; length: number; date: string }>>
+    longestMessages: {} as Record<string, Array<{ text: string; length: number; date: string }>>,
+    messagesByHour: {} as Record<string, number>,
+    messagesByDay: {} as Record<string, number>,
+    messagesByMonth: {} as Record<string, number>
   };
   
   // Track message counts and word counts by user
@@ -218,6 +227,21 @@ export function parseChatData(data: ChatData) {
   const textMessageCount = data.messages.filter(m => typeof m.text === 'string' && m.text.trim().length > 0).length;
   console.log(`Total messages with non-empty text: ${textMessageCount}`);
 
+  // Initialize time-based pattern tracking
+  // Initialize hours (0-23)
+  for (let hour = 0; hour < 24; hour++) {
+    stats.messagesByHour[hour.toString()] = 0;
+  }
+  
+  // Initialize days of week (0-6, starting from Sunday)
+  const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  daysOfWeek.forEach(day => {
+    stats.messagesByDay[day] = 0;
+  });
+  
+  // Map to track unique months for proper ordering later
+  const monthsMap = new Map<string, number>();
+  
   // Process each message
   let totalWordCount = 0;
   
@@ -238,6 +262,31 @@ export function parseChatData(data: ChatData) {
     userMessageCounts[user] = (userMessageCounts[user] || 0) + 1;
     stats.messagesByUser[user] = (stats.messagesByUser[user] || 0) + 1;
     stats.totalMessages++;
+
+    // Track message activity patterns if date is available
+    if (message.date) {
+      try {
+        const messageDate = new Date(message.date);
+        
+        // Track by hour of day (0-23)
+        const hour = messageDate.getHours();
+        stats.messagesByHour[hour.toString()] = (stats.messagesByHour[hour.toString()] || 0) + 1;
+        
+        // Track by day of week (0-6, starting from Sunday)
+        const dayOfWeek = daysOfWeek[messageDate.getDay()];
+        stats.messagesByDay[dayOfWeek] = (stats.messagesByDay[dayOfWeek] || 0) + 1;
+        
+        // Track by month (YYYY-MM format for proper sorting)
+        const year = messageDate.getFullYear();
+        const month = messageDate.getMonth() + 1; // JavaScript months are 0-indexed
+        const monthKey = `${year}-${month.toString().padStart(2, '0')}`;
+        
+        // Store in map for later conversion to an object with proper ordering
+        monthsMap.set(monthKey, (monthsMap.get(monthKey) || 0) + 1);
+      } catch (error) {
+        console.error("Error processing message date:", error);
+      }
+    }
 
     // Process ANY message with text content, regardless of type
     if (message.text) {
@@ -514,6 +563,35 @@ export function parseChatData(data: ChatData) {
         }
       }
     }
+  });
+
+  // Convert accumulated month data to record
+  // Sort the months chronologically
+  const sortedMonths = Array.from(monthsMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  
+  // Format the month keys to be more human-readable (e.g., "2023-01" to "Jan 2023")
+  sortedMonths.forEach(([monthKey, count]) => {
+    const [year, monthNum] = monthKey.split('-');
+    const date = new Date(parseInt(year), parseInt(monthNum) - 1, 1);
+    
+    // Format as "Jan 2023"
+    const formattedMonth = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    stats.messagesByMonth[formattedMonth] = count;
+  });
+
+  // Log activity pattern stats
+  let hourlyTotal = 0;
+  let dailyTotal = 0;
+  let monthlyTotal = 0;
+  
+  Object.values(stats.messagesByHour).forEach(count => hourlyTotal += count);
+  Object.values(stats.messagesByDay).forEach(count => dailyTotal += count);
+  Object.values(stats.messagesByMonth).forEach(count => monthlyTotal += count);
+  
+  console.log("Activity patterns generated:", {
+    hourly: hourlyTotal,
+    daily: dailyTotal,
+    monthly: monthlyTotal
   });
 
   // Remove "unknown" from message counts
