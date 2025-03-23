@@ -275,16 +275,12 @@ export function parseChatData(data: ChatData) {
           stats.longestMessages[user] = [];
         }
         
-        // Limit message text to reasonable size for display purposes
-        const displayText = messageText.length > 100 
-          ? messageText.substring(0, 100) + "..." 
-          : messageText;
-        
+        // Store the complete message text (not truncated)
         const messageDate = message.date ? new Date(message.date).toLocaleDateString() : 'Unknown date';
         
         // Add this message to the user's list
         stats.longestMessages[user].push({
-          text: displayText,
+          text: messageText, // Store complete message text, not truncated
           length: wordCount,
           date: messageDate
         });

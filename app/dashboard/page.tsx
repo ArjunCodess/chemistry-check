@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,12 @@ import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { formatFileSize } from "@/lib/format-utils";
 import { Clock } from "lucide-react";
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetTrigger 
+} from "@/components/ui/sheet";
+import { Menu } from "lucide-react";
 
 // Loading fallback component for tab transitions
 const TabLoadingFallback = () => (
@@ -139,6 +145,29 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
   const router = useRouter();
+  // Track which messages are expanded
+  const [expandedMessages, setExpandedMessages] = useState<Record<string, Record<number, boolean>>>({});
+  // Track active tab for mobile nav
+  const [activeTab, setActiveTab] = useState("basic");
+
+  // Toggle message expansion with improved logic
+  const toggleMessageExpand = useCallback((user: string, index: number) => {
+    console.log("Toggling message:", { user, index });
+    console.log("Before:", expandedMessages);
+    
+    setExpandedMessages(prev => {
+      const newState = {
+        ...prev,
+        [user]: {
+          ...(prev[user] || {}),
+          [index]: !(prev[user]?.[index])
+        }
+      };
+      
+      console.log("After:", newState);
+      return newState;
+    });
+  }, [expandedMessages]);
 
   useEffect(() => {
     try {
@@ -335,15 +364,78 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="mb-6 w-full">
-          <TabsTrigger value="basic">Basic Stats</TabsTrigger>
-          <TabsTrigger value="time">Response Times</TabsTrigger>
-          <TabsTrigger value="media">Media</TabsTrigger>
-          <TabsTrigger value="emoji">Emoji Analysis</TabsTrigger>
-          <TabsTrigger value="phrases">Phrase Analysis</TabsTrigger>
-        </TabsList>
+      {/* Desktop Tabs */}
+      <div className="hidden md:block">
+        <Tabs defaultValue="basic" className="w-full" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6 w-full">
+            <TabsTrigger value="basic">Basic Stats</TabsTrigger>
+            <TabsTrigger value="time">Response Times</TabsTrigger>
+            <TabsTrigger value="media">Media</TabsTrigger>
+            <TabsTrigger value="emoji">Emoji Analysis</TabsTrigger>
+            <TabsTrigger value="phrases">Phrase Analysis</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
 
+      {/* Mobile Navigation */}
+      <div className="md:hidden mb-6">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" className="w-full flex justify-between items-center">
+              <span>{
+                activeTab === "basic" ? "Basic Stats" :
+                activeTab === "time" ? "Response Times" :
+                activeTab === "media" ? "Media" :
+                activeTab === "emoji" ? "Emoji Analysis" :
+                "Phrase Analysis"
+              }</span>
+              <Menu className="h-4 w-4" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-96 px-4">
+            <div className="grid grid-cols-1 gap-4 pt-14">
+              <Button 
+                variant={activeTab === "basic" ? "default" : "ghost"} 
+                onClick={() => setActiveTab("basic")}
+                className="justify-start"
+              >
+                Basic Stats
+              </Button>
+              <Button 
+                variant={activeTab === "time" ? "default" : "ghost"} 
+                onClick={() => setActiveTab("time")}
+                className="justify-start"
+              >
+                Response Times
+              </Button>
+              <Button 
+                variant={activeTab === "media" ? "default" : "ghost"} 
+                onClick={() => setActiveTab("media")}
+                className="justify-start"
+              >
+                Media
+              </Button>
+              <Button 
+                variant={activeTab === "emoji" ? "default" : "ghost"} 
+                onClick={() => setActiveTab("emoji")}
+                className="justify-start"
+              >
+                Emoji Analysis
+              </Button>
+              <Button 
+                variant={activeTab === "phrases" ? "default" : "ghost"} 
+                onClick={() => setActiveTab("phrases")}
+                className="justify-start"
+              >
+                Phrase Analysis
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Tabs Content (Works with both desktop and mobile) */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         {/* Basic Stats Tab */}
         <TabsContent value="basic" className="space-y-6">
           <Suspense fallback={<TabLoadingFallback />}>
@@ -496,10 +588,10 @@ export default function Dashboard() {
                     )}
                     {Object.keys(safeStats.responseTimes || {}).length ===
                       0 && (
-                      <div className="text-sm text-gray-500">
-                        No response time data available
-                      </div>
-                    )}
+                          <div className="text-sm text-gray-500">
+                            No response time data available
+                          </div>
+                        )}
                   </div>
                 </CardContent>
               </Card>
@@ -795,19 +887,49 @@ export default function Dashboard() {
                       <div key={user} className="border-b pb-4 last:border-b-0">
                         <h3 className="text-lg font-medium mb-3">{user}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          {(Array.isArray(messages) ? messages : [messages]).map((message, index) => (
-                            <div key={index} className="bg-gray-50 p-3 rounded-lg">
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="text-xs text-gray-500">{message.date || 'Unknown date'}</span>
-                                <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                                  {message.length} words
-                                </span>
+                          {(Array.isArray(messages) ? messages : [messages]).map((message, index) => {
+                            // Ensure message.text is a string
+                            const messageText = typeof message.text === 'string' 
+                              ? message.text 
+                              : String(message.text || '');
+                            
+                            // Get expansion state with fallback
+                            const isExpanded = Boolean(expandedMessages[user]?.[index]);
+                            console.log(`Message ${user}-${index} expanded:`, isExpanded);
+                            
+                            // Only truncate if longer than 100 chars and not expanded
+                            const shouldTruncate = messageText.length > 100 && !isExpanded;
+                            const displayText = shouldTruncate 
+                              ? messageText.substring(0, 100) + "..." 
+                              : messageText;
+                            
+                            return (
+                              <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="text-xs text-gray-500">{message.date || 'Unknown date'}</span>
+                                  <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                    {message.length} words
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                                  &ldquo;{displayText}&rdquo;
+                                </p>
+                                {messageText.length > 100 && (
+                                  <Button 
+                                    variant="link" 
+                                    size="sm" 
+                                    className="mt-2 h-auto p-0"
+                                    onClick={() => {
+                                      console.log("Button clicked for", user, index);
+                                      toggleMessageExpand(user, index);
+                                    }}
+                                  >
+                                    {isExpanded ? "Show Less" : "Read More"}
+                                  </Button>
+                                )}
                               </div>
-                              <p className="text-sm text-gray-700">
-                                &ldquo;{message.text}&rdquo;
-                              </p>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )
@@ -1198,9 +1320,9 @@ export default function Dashboard() {
                                   </strong>
                                 </span>
                               </div>
-                              <div className="w-full bg-gray-100 rounded-full h-2.5">
+                              <div className="w-full bg-gray-100 rounded-full h-2">
                                 <div
-                                  className="bg-primary h-2.5 rounded-full"
+                                  className="bg-primary h-2 rounded-full"
                                   style={{ width: `${percentOfTotal}%` }}
                                 ></div>
                               </div>
