@@ -106,7 +106,7 @@ export default function WordCloud({ data, title, height = 400 }: WordCloudProps)
     return (word: { value: number }) => {
       // Prevent NaN or negative values inside log calculations
       const value = Math.max(1, word.value);
-      return Math.max(12, Math.log2(value) * 5);
+      return Math.max(12, Math.log2(value) * (typeof window !== 'undefined' && window.innerWidth > 768 ? 6 : 4));
     };
   }, []);
 

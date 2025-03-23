@@ -11,9 +11,43 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { useEffect, useState } from "react";
 
 interface PieChartProps {
   data: Array<{ name: string; value: number }>;
+}
+
+// Define useWindowSize hook inline
+function useWindowSize() {
+  const [windowSize, setWindowSize] = useState<{
+    width: number | undefined;
+    height: number | undefined;
+  }>({
+    width: undefined,
+    height: undefined,
+  });
+
+  useEffect(() => {
+    // Handler to call on window resize
+    function handleResize() {
+      // Set window width/height to state
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+    
+    // Add event listener
+    window.addEventListener("resize", handleResize);
+    
+    // Call handler right away so state gets updated with initial window size
+    handleResize();
+    
+    // Remove event listener on cleanup
+    return () => window.removeEventListener("resize", handleResize);
+  }, []); // Empty array ensures that effect is only run on mount and unmount
+  
+  return windowSize;
 }
 
 const COLORS = [
@@ -26,6 +60,13 @@ const COLORS = [
 ];
 
 export default function PieChart({ data }: PieChartProps) {
+  const { width } = useWindowSize();
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    setIsMobile(width ? width < 768 : false);
+  }, [width]);
+
   // Transform data to match expected format
   const chartData = data.map((item, index) => ({
     name: item.name,
@@ -49,43 +90,39 @@ export default function PieChart({ data }: PieChartProps) {
     };
   });
 
-  console.log("Pie Chart Data:", chartData); // Debug data
-
   return (
     <div className="flex flex-col md:py-4">
       <ChartContainer
         config={chartConfig}
-        className="w-full h-full flex-1"
+        className=" w-full mx-auto aspect-square max-h-[200px] sm:max-h-[300px] md:max-h-[400px] [&_.recharts-text]:fill-background md:w-full md:flex-1"
       >
-        <ResponsiveContainer width="100%" height={350}>
+        <ResponsiveContainer width="100%" height={isMobile ? 350 : 450}>
           <RechartsPieChart>
             <ChartTooltip
               content={<ChartTooltipContent nameKey="name" hideLabel />}
             />
             <Pie
               data={chartData}
-              cx="50%"
-              cy="50%"
-              outerRadius={150}
               dataKey="value"
               nameKey="name"
-              fill="#8884d8" // Default fill (shouldn't be used because we set per-segment fills)
               label={({ name, percent, ...props }) => {
-                return (
+                const shouldShowLabel = true;
+                const labelText = `${name} (${(percent * 100).toFixed(0)}%)`;
+                
+                return shouldShowLabel ? (
                   <text
                     x={props.x}
                     y={props.y}
                     fill="hsla(var(--foreground))"
                     textAnchor={props.textAnchor}
                     dominantBaseline="central"
-                    fontSize={13}
+                    fontSize={isMobile ? 10 : 13}
                     fontWeight={500}
                   >
-                    {`${name} (${(percent * 100).toFixed(0)}%)`}
+                    {labelText}
                   </text>
-                );
+                ) : null;
               }}
-              labelLine={true}
             />
           </RechartsPieChart>
         </ResponsiveContainer>

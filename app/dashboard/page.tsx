@@ -41,16 +41,6 @@ const PieChart = dynamic(() => import("@/components/charts/pie-chart"), {
   ),
 });
 
-const DistributionChart = dynamic(
-  () => import("@/components/charts/distribution-chart"),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-    ),
-  }
-);
-
 const WordCloud = dynamic(() => import("@/components/charts/word-cloud"), {
   ssr: false,
   loading: () => (
@@ -1159,7 +1149,7 @@ export default function Dashboard() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-6">
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="bg-background p-4 rounded-lg border shadow-sm">
                               <div className="flex items-center space-x-2">
                                 <svg
@@ -1220,15 +1210,16 @@ export default function Dashboard() {
                               <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
                             }
                           >
-                            <DistributionChart
+                            <BarChart
                               data={Object.entries(
                                 rtStats?.distribution ?? {}
                               ).map(([category, count]) => ({
-                                category,
+                                name: category,
                                 count,
                               }))}
                               title="Response Time Distribution"
                               height={250}
+                              multicolor={true}
                             />
                           </Suspense>
                         </div>
