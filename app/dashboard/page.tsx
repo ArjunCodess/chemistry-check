@@ -21,13 +21,7 @@ import { createSafeStats } from "@/lib/chat-stats";
 import dynamic from "next/dynamic";
 import { ChatStats } from "@/types";
 import { Media } from "@/components/dashboard/media";
-
-const BarChart = dynamic(() => import("@/components/charts/bar-chart"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-  ),
-});
+import { EmojiAnalysis } from "@/components/dashboard/emoji-analysis";
 
 const WordCloud = dynamic(() => import("@/components/charts/word-cloud"), {
   ssr: false,
@@ -326,72 +320,7 @@ export default function Dashboard() {
         {/* Emoji Analysis Tab */}
         <TabsContent value="emoji" className="space-y-6">
           <Suspense fallback={<TabLoadingFallback />}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Most Used Emojis</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Suspense
-                    fallback={
-                      <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-                    }
-                  >
-                    <BarChart
-                      data={(safeStats?.mostUsedEmojis || [])
-                        .slice(0, 10)
-                        .map((item) => ({
-                          name: item.emoji,
-                          count: item.count,
-                        }))}
-                      title="Emoji Usage"
-                      height={250}
-                      barColor="hsl(var(--chart-3))"
-                      multicolor={true}
-                    />
-                  </Suspense>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Emoji Usage by User</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {Object.entries(safeStats?.emojiStats?.byUser || {}).map(
-                      ([user, emojis]) => (
-                        <div
-                          key={user}
-                          className="border-b pb-4 last:border-b-0"
-                        >
-                          <h3 className="text-lg font-medium mb-2">{user}</h3>
-                          <div className="grid grid-cols-3 gap-2">
-                            {Object.entries(emojis || {})
-                              .sort(
-                                ([, countA], [, countB]) =>
-                                  Number(countB) - Number(countA)
-                              )
-                              .slice(0, 6)
-                              .map(([emoji, count]) => (
-                                <div
-                                  key={emoji}
-                                  className="flex flex-col items-center p-2 bg-gray-50 rounded-lg"
-                                >
-                                  <span className="text-2xl">{emoji}</span>
-                                  <span className="text-xs text-gray-500">
-                                    {count}
-                                  </span>
-                                </div>
-                              ))}
-                          </div>
-                        </div>
-                      )
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <EmojiAnalysis stats={safeStats} />
           </Suspense>
         </TabsContent>
 
