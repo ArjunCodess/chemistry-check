@@ -9,6 +9,17 @@ import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Menu } from "lucide-react";
 import { createSafeStats } from "@/lib/chat-stats";
 import { ChatStats } from "@/types";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 import { BasicStats } from "@/components/dashboard/basic-stats";
 import { ResponseTimes } from "@/components/dashboard/response-times";
@@ -145,9 +156,25 @@ export default function Dashboard() {
             </p>
           )}
         </div>
-        <Button onClick={handleUploadNewChat} variant="outline">
-          Upload New Chat
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline">Upload New Chat</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Upload New Chat?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will take you to the upload page. Your current analysis will be cleared.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleUploadNewChat}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       {/* Desktop Tabs */}
