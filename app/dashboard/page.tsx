@@ -12,24 +12,17 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { formatFileSize } from "@/lib/format-utils";
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
 import { Menu } from "lucide-react";
 import { BasicStats } from "@/components/dashboard/basic-stats";
 import { ResponseTimes } from "@/components/dashboard/response-times";
 import { ActivityPatterns } from "@/components/dashboard/activity-patterns";
-import { createSafeStats, getMediaByTypeData } from "@/lib/chat-stats";
+import { createSafeStats } from "@/lib/chat-stats";
 import dynamic from "next/dynamic";
 import { ChatStats } from "@/types";
+import { Media } from "@/components/dashboard/media";
 
 const BarChart = dynamic(() => import("@/components/charts/bar-chart"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-  ),
-});
-
-const PieChart = dynamic(() => import("@/components/charts/pie-chart"), {
   ssr: false,
   loading: () => (
     <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
@@ -156,8 +149,6 @@ export default function Dashboard() {
         ? safeStats.totalWords / safeStats.totalMessages
         : 0,
   });
-
-  const mediaByTypeData = getMediaByTypeData(safeStats);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -328,145 +319,7 @@ export default function Dashboard() {
         {/* Media Tab */}
         <TabsContent value="media" className="space-y-6">
           <Suspense fallback={<TabLoadingFallback />}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Media Overview</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-500">Total Media</p>
-                        <p className="text-xl font-semibold">
-                          {(safeStats?.mediaStats?.total ?? 0).toLocaleString()}
-                        </p>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <p className="text-sm text-gray-500">Total Size</p>
-                        <p className="text-xl font-semibold">
-                          {formatFileSize(
-                            safeStats?.mediaStats?.totalSize ?? 0
-                          )}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Suspense
-                      fallback={
-                        <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
-                      }
-                    >
-                      <PieChart data={mediaByTypeData} />
-                    </Suspense>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Media by User</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {Object.entries(safeStats?.mediaStats?.byUser ?? {}).map(
-                      ([user, userMedia]) => {
-                        // Calculate total media for this user
-                        const userTotal = userMedia?.total ?? 0;
-                        // Calculate percentage compared to overall media
-                        const percentOfTotal = safeStats?.mediaStats?.total
-                          ? Math.round(
-                              (userTotal / safeStats.mediaStats.total) * 100
-                            )
-                          : 0;
-
-                        return (
-                          <div
-                            key={user}
-                            className="border border-border rounded-lg p-4 shadow-sm"
-                          >
-                            <div className="flex justify-between items-center mb-3">
-                              <h3 className="text-lg font-medium">{user}</h3>
-                              <div className="bg-primary/10 text-primary px-2 py-1 rounded-full text-xs font-semibold">
-                                {percentOfTotal}% of total
-                              </div>
-                            </div>
-
-                            <div className="mb-4">
-                              <div className="flex justify-between items-center mb-1 text-sm">
-                                <span>
-                                  Total Media: <strong>{userTotal}</strong>
-                                </span>
-                                <span>
-                                  Size:{" "}
-                                  <strong>
-                                    {formatFileSize(userMedia?.totalSize ?? 0)}
-                                  </strong>
-                                </span>
-                              </div>
-                              <div className="w-full bg-gray-100 rounded-full h-2">
-                                <div
-                                  className="bg-primary h-2 rounded-full"
-                                  style={{ width: `${percentOfTotal}%` }}
-                                ></div>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-2">
-                              {[
-                                {
-                                  name: "Images",
-                                  value: userMedia?.byType?.images ?? 0,
-                                  icon: "📷",
-                                },
-                                {
-                                  name: "Videos",
-                                  value: userMedia?.byType?.videos ?? 0,
-                                  icon: "🎬",
-                                },
-                                {
-                                  name: "GIFs",
-                                  value: userMedia?.byType?.animations ?? 0,
-                                  icon: "✨",
-                                },
-                                {
-                                  name: "Documents",
-                                  value: userMedia?.byType?.documents ?? 0,
-                                  icon: "📄",
-                                },
-                                {
-                                  name: "Stickers",
-                                  value: userMedia?.byType?.stickers ?? 0,
-                                  icon: "🔖",
-                                },
-                                {
-                                  name: "Links",
-                                  value: userMedia?.byType?.links ?? 0,
-                                  icon: "🔗",
-                                },
-                              ].map((item) => (
-                                <div
-                                  key={item.name}
-                                  className="bg-gray-50 p-3 rounded-md flex gap-2 items-center"
-                                >
-                                  <span className="text-lg">{item.icon}</span>
-                                  <div>
-                                    <p className="text-xs text-gray-500 leading-tight">
-                                      {item.name}
-                                    </p>
-                                    <p className="font-medium">{item.value}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      }
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <Media stats={safeStats} />
           </Suspense>
         </TabsContent>
 

@@ -12,7 +12,7 @@ import { WordsByUserDetailedCard } from "./words-by-user-detailed-card";
 import { EmojisByUserCard } from "./emojis-by-user-card";
 import { LongestMessagesCard } from "./longest-messages-card";
 
-interface BasicStatsTabProps {
+interface BasicStatsProps {
   stats: ChatStats;
   expandedMessages: Record<string, Record<number, boolean>>;
   toggleMessageExpand: (user: string, index: number) => void;
@@ -22,7 +22,7 @@ export function BasicStats({
   stats,
   expandedMessages,
   toggleMessageExpand,
-}: BasicStatsTabProps) {
+}: BasicStatsProps) {
   return (
     <Suspense
       fallback={
