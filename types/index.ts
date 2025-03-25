@@ -54,7 +54,19 @@ export interface EmojiStats {
   };
 }
 
+export interface WhatsAppMessage {
+  date: string;
+  sender: string;
+  content: string;
+  mediaType?: string;
+  isReply?: boolean;
+  isEdited?: boolean;
+  isDeleted?: boolean;
+  isSystemMessage?: boolean;
+}
+
 export interface ChatStats {
+  source?: string;
   totalMessages: number;
   messagesByUser: Record<string, number>;
   totalWords: number;
@@ -77,10 +89,17 @@ export interface ChatStats {
   emojiFrequency: Record<string, number>;
   wordFrequencyByUser: Record<string, Record<string, number>>;
   longestMessages: Record<string, Array<{ text: string; length: number; date: string }>>;
-  messagesByHour?: Record<string, number>;
-  messagesByDay?: Record<string, number>;
-  messagesByMonth?: Record<string, number>;
-  sorryByUser?: Record<string, number>;
+  messagesByHour: Record<string, number>;
+  messagesByDay: Record<string, number>;
+  messagesByMonth: Record<string, number>;
+  sorryByUser: Record<string, number>;
+  mostApologeticUser?: {
+    user: string;
+    apologies: number;
+    percentage: number;
+    mostCommonSorry: string;
+  };
+  equalApologies?: boolean;
   aiSummary?: string;
   relationshipHealthScore?: {
     overall: number;

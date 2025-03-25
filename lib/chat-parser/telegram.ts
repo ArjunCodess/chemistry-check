@@ -149,6 +149,13 @@ export interface ChatStats {
   relationshipHealthScore?: RelationshipHealthScore;
   interestPercentage?: Record<string, InterestPercentage>;
   cookedStatus?: CookedStatus;
+  mostApologeticUser?: {
+    user: string;
+    apologies: number;
+    percentage: number;
+    mostCommonSorry: string;
+  };
+  equalApologies: boolean;
 }
 
 // Function to call Gemini API for generating AI insights
@@ -351,7 +358,9 @@ function getDefaultAIInsights(stats: ChatStats): {
       isCooked: false,
       user: users.length > 0 ? users[0] : "Unknown",
       confidence: 0
-    }
+    },
+    mostApologeticUser: undefined,
+    equalApologies: true
   };
   
   // Add interest percentage for each user
@@ -432,7 +441,9 @@ export async function parseChatData(data: ChatData) {
         isCooked: false,
         user: "Unknown",
         confidence: 0
-      }
+      },
+      mostApologeticUser: undefined,
+      equalApologies: true
     };
   }
   
@@ -490,7 +501,14 @@ export async function parseChatData(data: ChatData) {
     aiSummary: undefined as string | undefined,
     relationshipHealthScore: undefined as RelationshipHealthScore | undefined,
     interestPercentage: {} as Record<string, InterestPercentage> | undefined,
-    cookedStatus: undefined as CookedStatus | undefined
+    cookedStatus: undefined as CookedStatus | undefined,
+    mostApologeticUser: undefined as {
+      user: string;
+      apologies: number;
+      percentage: number;
+      mostCommonSorry: string;
+    } | undefined,
+    equalApologies: true
   };
   
   // Track message counts and word counts by user
@@ -1065,6 +1083,33 @@ export async function parseChatData(data: ChatData) {
       stats.responseTimes[user].longest = Math.max(...times);
     }
   });
+
+  // Calculate most apologetic user and check for equal apologies
+  if (Object.keys(stats.sorryByUser).length > 0) {
+    const sortedUsers = Object.entries(stats.sorryByUser)
+      .sort(([, a], [, b]) => (b as number) - (a as number));
+    
+    const [topUser, topCount] = sortedUsers[0];
+    const totalSorries = Object.values(stats.sorryByUser).reduce(
+      (sum, count) => sum + (count as number),
+      0
+    );
+    
+    // Check if there's a tie for most apologies
+    const isTie = sortedUsers.length > 1 && 
+                  (sortedUsers[0][1] as number) === (sortedUsers[1][1] as number);
+    
+    stats.equalApologies = isTie;
+    
+    if (!isTie) {
+      stats.mostApologeticUser = {
+        user: topUser,
+        apologies: topCount as number,
+        percentage: Math.round(((topCount as number) / totalSorries) * 100),
+        mostCommonSorry: "sorry"
+      };
+    }
+  }
 
   // Assign gap analysis data to stats
   stats.gapTrends = allGapTimes;

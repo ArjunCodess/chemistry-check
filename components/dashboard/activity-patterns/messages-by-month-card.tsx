@@ -33,12 +33,12 @@ export function MessagesByMonthCard({ stats }: MessagesByMonthCardProps) {
           <>
             <div className="h-72">
               <BarChart
-                data={Object.entries(stats.messagesByMonth).map(
-                  ([month, count]) => ({
+                data={Object.entries(stats.messagesByMonth)
+                  .filter(([, count]) => (count as number) > 0)
+                  .map(([month, count]) => ({
                     name: month,
                     count: count as number,
-                  })
-                )}
+                  }))}
                 title="Monthly Message Trends"
                 height={320}
                 barColor="hsl(var(--chart-3))"

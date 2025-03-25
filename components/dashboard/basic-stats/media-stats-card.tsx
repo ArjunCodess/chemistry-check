@@ -7,6 +7,8 @@ interface MediaStatsCardProps {
 }
 
 export function MediaStatsCard({ stats }: MediaStatsCardProps) {
+  const isWhatsApp = stats.source === "whatsapp";
+
   return (
     <Card>
       <CardHeader>
@@ -20,24 +22,46 @@ export function MediaStatsCard({ stats }: MediaStatsCardProps) {
               {(stats.mediaStats?.total || 0).toLocaleString()}
             </span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Total Size:</span>
-            <span className="font-semibold">
-              {formatFileSize(stats.mediaStats?.totalSize || 0)}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Images:</span>
-            <span className="font-semibold">
-              {(stats.mediaStats?.byType?.images || 0).toLocaleString()}
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Videos:</span>
-            <span className="font-semibold">
-              {(stats.mediaStats?.byType?.videos || 0).toLocaleString()}
-            </span>
-          </div>
+          
+          {!isWhatsApp && (
+            <>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Total Size:</span>
+                <span className="font-semibold">
+                  {formatFileSize(stats.mediaStats?.totalSize || 0)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Images:</span>
+                <span className="font-semibold">
+                  {(stats.mediaStats?.byType?.images || 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Videos:</span>
+                <span className="font-semibold">
+                  {(stats.mediaStats?.byType?.videos || 0).toLocaleString()}
+                </span>
+              </div>
+            </>
+          )}
+          
+          {isWhatsApp && (
+            <>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Other Media:</span>
+                <span className="font-semibold">
+                  {(stats.mediaStats?.byType?.documents || 0).toLocaleString()}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Links:</span>
+                <span className="font-semibold">
+                  {(stats.mediaStats?.byType?.links || 0).toLocaleString()}
+                </span>
+              </div>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

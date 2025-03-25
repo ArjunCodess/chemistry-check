@@ -18,7 +18,7 @@ export function FileUpload({ handleFileChange }: FileUploadProps) {
       <input
         type="file"
         id="file"
-        accept=".json"
+        accept=".json, .txt"
         onChange={handleFileChange}
         className="block w-full text-xs sm:text-sm text-gray-500
           file:mr-2 sm:file:mr-4 file:py-1.5 sm:file:py-2 file:px-2 sm:file:px-4

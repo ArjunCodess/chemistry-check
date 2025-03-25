@@ -94,7 +94,7 @@ export default function PieChart({ data }: PieChartProps) {
     <div className="flex flex-col md:py-4">
       <ChartContainer
         config={chartConfig}
-        className=" w-full mx-auto aspect-square max-h-[200px] sm:max-h-[300px] md:max-h-[400px] [&_.recharts-text]:fill-background md:w-full md:flex-1"
+        className="w-full mx-auto h-[200px] sm:h-[300px] md:h-[400px] [&_.recharts-text]:fill-background md:w-full md:flex-1"
       >
         <ResponsiveContainer width="100%" height={isMobile ? 350 : 450}>
           <RechartsPieChart>

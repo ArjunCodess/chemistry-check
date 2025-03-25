@@ -7,6 +7,9 @@ export const createSafeStats = (stats: ChatStats | null): ChatStats => {
       totalWords: 0,
       messagesByUser: {},
       wordsByUser: {},
+      messagesByHour: {},
+      messagesByDay: {},
+      messagesByMonth: {},
       editedMessages: { total: 0, byUser: {} },
       mediaStats: {
         total: 0,
@@ -49,6 +52,9 @@ export const createSafeStats = (stats: ChatStats | null): ChatStats => {
     totalWords: stats.totalWords || 0,
     messagesByUser: stats.messagesByUser || {},
     wordsByUser: stats.wordsByUser || {},
+    messagesByHour: stats.messagesByHour || {},
+    messagesByDay: stats.messagesByDay || {},
+    messagesByMonth: stats.messagesByMonth || {},
     editedMessages: stats.editedMessages || { total: 0, byUser: {} },
     mediaStats: stats.mediaStats || {
       total: 0,

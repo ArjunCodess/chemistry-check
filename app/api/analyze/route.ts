@@ -1,6 +1,6 @@
 import { parseChatData as parseTelegramChatData } from '@/lib/chat-parser/telegram';
 // import { parseChatData as parseInstagramChatData } from '@/lib/chat-parser/instagram';
-// import { parseChatData as parseWhatsappChatData } from '@/lib/chat-parser/whatsapp';
+import { parseChatData as parseWhatsappChatData } from '@/lib/chat-parser/whatsapp';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
@@ -23,22 +23,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Read file content
     const text = await file.text();
-    const chatData = JSON.parse(text);
 
-    // Parse chat data based on platform
     let stats;
     switch (platform) {
       case 'telegram':
+        const chatData = JSON.parse(text);
         stats = await parseTelegramChatData(chatData);
         break;
       // case 'instagram':
       //   stats = await parseInstagramChatData(chatData);
       //   break;
-      // case 'whatsapp':
-      //   stats = await parseWhatsappChatData(chatData);
-      //   break;
+      case 'whatsapp':
+        stats = await parseWhatsappChatData(text);
+        break;
       default:
         return NextResponse.json(
           { error: 'Invalid platform specified' },

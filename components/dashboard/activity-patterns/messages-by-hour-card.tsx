@@ -20,6 +20,14 @@ interface MessagesByHourCardProps {
 }
 
 export function MessagesByHourCard({ stats }: MessagesByHourCardProps) {
+  // Convert 24-hour format to 12-hour AM/PM format
+  const formatHour = (hour: string) => {
+    const hourNum = parseInt(hour, 10);
+    if (hourNum === 0) return "12 AM";
+    if (hourNum === 12) return "12 PM";
+    return hourNum < 12 ? `${hourNum} AM` : `${hourNum - 12} PM`;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -35,7 +43,7 @@ export function MessagesByHourCard({ stats }: MessagesByHourCardProps) {
               <BarChart
                 data={Object.entries(stats.messagesByHour).map(
                   ([hour, count]) => ({
-                    name: `${hour}:00`,
+                    name: formatHour(hour),
                     count: count as number,
                   })
                 )}
