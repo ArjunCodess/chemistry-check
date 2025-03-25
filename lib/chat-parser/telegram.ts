@@ -1,165 +1,7 @@
-interface Message {
-  id: number;
-  type: string;
-  date: string;
-  from: string;
-  text?: string | Array<{type: string, text: string}>;
-  reply_to_message_id?: number;
-  edited?: boolean;
-  edited_date?: string;
-  sticker_emoji?: string;
-  sticker_format?: string;
-  file_size?: number;
-  file_name?: string;
-  width?: number;
-  height?: number;
-  duration_seconds?: number;
-  reaction_emoji?: string;
-  message_id?: number;
-  actor?: string;
-  action?: string;
-  emoticon?: string;
-  file?: boolean;
-  media_type?: string;
-  mime_type?: string;
-  photo?: string;
-  photo_file_size?: number;
-  thumbnail?: string;
-  thumbnail_file_size?: number;
-}
-
-interface ChatData {
-  chat_id: number;
-  participants: Record<string, string>;
-  messages: Message[];
-}
-
-// New interfaces for Phase 2 features
-interface ResponseTimeStats {
-  average: number;
-  longest: number;
-  distribution: {
-    '0-5min': number;
-    '5-15min': number;
-    '15-30min': number;
-    '30min-1hour': number;
-    '1hour+': number;
-  };
-}
-
-interface MediaStats {
-  total: number;
-  byType: {
-    images: number;
-    videos: number;
-    documents: number;
-    stickers: number;
-    animations: number;
-    links: number;
-  };
-  totalSize: number;
-  byUser: Record<string, {
-    total: number;
-    byType: {
-      images: number;
-      videos: number;
-      documents: number;
-      stickers: number;
-      animations: number;
-      links: number;
-    };
-    totalSize: number;
-  }>;
-}
-
-interface EmojiCombination {
-  emojis: string[];
-  count: number;
-}
-
-interface EmojiStats {
-  frequency: Record<string, number>;
-  byUser: Record<string, Record<string, number>>;
-  combinations: EmojiCombination[];
-  sentiment: {
-    positive: number;
-    negative: number;
-    neutral: number;
-  };
-}
-
-// AI Insights interfaces
-interface RelationshipHealthScore {
-  overall: number;
-  details: {
-    balance: number;
-    engagement: number;
-    positivity: number;
-    consistency: number;
-  };
-  redFlags?: string[];
-}
-
-interface InterestPercentage {
-  score: number;
-  details: {
-    initiation: number;
-    responseRate: number;
-    enthusiasm: number;
-    consistency: number;
-  };
-}
-
-// Cooked status interface
-interface CookedStatus {
-  isCooked: boolean;
-  user: string;
-  confidence: number; // 0-100
-}
-
-export interface ChatStats {
-  totalMessages: number;
-  messagesByUser: Record<string, number>;
-  totalWords: number;
-  wordsByUser: Record<string, number>;
-  mostUsedWords: Array<{ word: string; count: number }>;
-  mostUsedEmojis: Array<{ emoji: string; count: number }>;
-  wordFrequency: Record<string, number>;
-  emojiFrequency: Record<string, number>;
-  wordFrequencyByUser: Record<string, Record<string, number>>;
-  responseTimes: Record<string, ResponseTimeStats>;
-  mediaStats: MediaStats;
-  emojiStats: EmojiStats;
-  editedMessages: {
-    total: number;
-    byUser: Record<string, number>;
-  };
-  commonPhrases?: Array<{ text: string; count: number }>;
-  overusedPhrases?: Record<string, Array<{ text: string; count: number }>>;
-  gapTrends?: Array<{ time: string; duration: number }>;
-  gapAnalysis?: Record<string, Array<{ time: string; duration: number }>>;
-  biggestGaps?: Array<{ user: string; duration: number; date: string }>;
-  longestMessages?: Record<string, Array<{ text: string; length: number; date: string }>>;
-  messagesByHour?: Record<string, number>;
-  messagesByDay?: Record<string, number>;
-  messagesByMonth?: Record<string, number>;
-  sorryByUser?: Record<string, number>;
-  // AI Insights fields
-  aiSummary?: string;
-  relationshipHealthScore?: RelationshipHealthScore;
-  interestPercentage?: Record<string, InterestPercentage>;
-  cookedStatus?: CookedStatus;
-  mostApologeticUser?: {
-    user: string;
-    apologies: number;
-    percentage: number;
-    mostCommonSorry: string;
-  };
-  equalApologies: boolean;
-}
+import { TelegramMessage, TelegramChatData, ChatStats, ResponseTimeStats, MediaStats, EmojiCombination, EmojiStats, RelationshipHealthScore, InterestPercentage, CookedStatus } from '@/types';
 
 // Function to call Gemini API for generating AI insights
-async function generateAIInsights(data: ChatData, stats: ChatStats): Promise<{
+async function generateAIInsights(data: TelegramChatData, stats: ChatStats): Promise<{
   aiSummary: string;
   relationshipHealthScore: RelationshipHealthScore;
   interestPercentage: Record<string, InterestPercentage>;
@@ -379,7 +221,7 @@ function getDefaultAIInsights(stats: ChatStats): {
   return defaultInsights;
 }
 
-export async function parseChatData(data: ChatData) {
+export async function parseChatData(data: TelegramChatData) {
   console.log("Starting to parse chat data with", data.messages?.length || 0, "messages");
   
   // Check if valid data is provided
@@ -1143,7 +985,7 @@ export async function parseChatData(data: ChatData) {
 /**
  * Analyzes messages to identify common phrases and user-specific overused phrases
  */
-function analyzePhrases(messages: Message[], users: string[]): { 
+function analyzePhrases(messages: TelegramMessage[], users: string[]): { 
   commonPhrases: Array<{ text: string; count: number }>;
   overusedPhrases: Record<string, Array<{ text: string; count: number }>>;
 } {

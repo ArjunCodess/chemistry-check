@@ -65,6 +65,42 @@ export interface WhatsAppMessage {
   isSystemMessage?: boolean;
 }
 
+export interface TelegramMessage {
+  id: number;
+  type: string;
+  date: string;
+  from: string;
+  text?: string | Array<{type: string, text: string}>;
+  reply_to_message_id?: number;
+  edited?: boolean;
+  edited_date?: string;
+  sticker_emoji?: string;
+  sticker_format?: string;
+  file_size?: number;
+  file_name?: string;
+  width?: number;
+  height?: number;
+  duration_seconds?: number;
+  reaction_emoji?: string;
+  message_id?: number;
+  actor?: string;
+  action?: string;
+  emoticon?: string;
+  file?: boolean;
+  media_type?: string;
+  mime_type?: string;
+  photo?: string;
+  photo_file_size?: number;
+  thumbnail?: string;
+  thumbnail_file_size?: number;
+}
+
+export interface TelegramChatData {
+  chat_id: number;
+  participants: Record<string, string>;
+  messages: TelegramMessage[];
+}
+
 export interface ChatStats {
   source?: string;
   totalMessages: number;
@@ -125,4 +161,31 @@ export interface ChatStats {
     user: string;
     confidence: number;
   };
+}
+
+export interface RelationshipHealthScore {
+  overall: number;
+  details: {
+    balance: number;
+    engagement: number;
+    positivity: number;
+    consistency: number;
+  };
+  redFlags?: string[];
+}
+
+export interface InterestPercentage {
+  score: number;
+  details: {
+    initiation: number;
+    responseRate: number;
+    enthusiasm: number;
+    consistency: number;
+  };
+}
+
+export interface CookedStatus {
+  isCooked: boolean;
+  user: string;
+  confidence: number; // 0-100
 }
