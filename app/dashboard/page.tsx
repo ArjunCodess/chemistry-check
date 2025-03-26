@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, Suspense, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ import { Media } from "@/components/dashboard/media";
 import { EmojiAnalysis } from "@/components/dashboard/emoji-analysis";
 import { PhraseAnalysis } from "@/components/dashboard/phrase-analysis";
 import { AIInsights } from "@/components/dashboard/ai-insights";
+import { authClient } from "@/lib/auth-client";
 
 const TabLoadingFallback = () => (
   <div className="animate-pulse space-y-4">
@@ -48,6 +49,10 @@ export default function Dashboard() {
   >({});
   const [activeTab, setActiveTab] = useState("basic");
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const { data: session } = authClient.useSession()
+  
+  if (!session) redirect("/sign-in");
 
   const toggleMessageExpand = useCallback(
     (user: string, index: number) => {
@@ -145,7 +150,7 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col md:flex-row justify-between md:items-center pb-4 mb-4 md:pb-8 md:mb-8 border-b">
         <div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
             Chat Analytics
@@ -157,7 +162,7 @@ export default function Dashboard() {
           )}
         </div>
         <AlertDialog>
-          <AlertDialogTrigger asChild>
+          <AlertDialogTrigger asChild className="mt-4 md:mt-0 w-full md:w-fit">
             <Button variant="outline">Upload New Chat</Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
