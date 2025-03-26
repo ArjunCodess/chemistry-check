@@ -3,17 +3,11 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@/db";
 import { schema } from "@/db/schema";
 import { nextCookies } from "better-auth/next-js";
+import { config } from "dotenv";
 
-// Get the base URL for callback
-const getBaseUrl = () => {
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-  return process.env.APP_URL || 'http://localhost:3000';
-};
+config({ path: ".env" });
 
 export const auth = betterAuth({
-  baseURL: getBaseUrl(),
   database: drizzleAdapter(db, {
     provider: "pg",
     schema: schema,
@@ -24,8 +18,8 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       scope: ["profile", "email"],
       profile: {
         name: "name",
