@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useState, Suspense, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { redirect, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Menu } from "lucide-react";
-import { createSafeStats } from "@/lib/chat-stats";
-import { ChatStats } from "@/types";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { authClient } from "@/lib/auth-client";
+import { MessageCircle, Users, AlertCircle, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,341 +27,213 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-import { BasicStats } from "@/components/dashboard/basic-stats";
-import { ResponseTimes } from "@/components/dashboard/response-times";
-import { ActivityPatterns } from "@/components/dashboard/activity-patterns";
-import { Media } from "@/components/dashboard/media";
-import { EmojiAnalysis } from "@/components/dashboard/emoji-analysis";
-import { PhraseAnalysis } from "@/components/dashboard/phrase-analysis";
-import { AIInsights } from "@/components/dashboard/ai-insights";
-import { authClient } from "@/lib/auth-client";
+interface Analysis {
+  id: string;
+  name: string;
+  platform: string;
+  createdAt: string;
+  totalMessages: number;
+  totalWords: number;
+  participantCount: number;
+}
 
-const TabLoadingFallback = () => (
-  <div className="animate-pulse space-y-4">
-    <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-    <div className="h-64 bg-gray-200 rounded"></div>
-    <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-    <div className="h-32 bg-gray-200 rounded"></div>
-  </div>
-);
-
-export default function Dashboard() {
-  const [stats, setStats] = useState<ChatStats | null>(null);
+export default function DashboardPage() {
+  const [analyses, setAnalyses] = useState<Analysis[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [cacheTimestamp, setCacheTimestamp] = useState<string | null>(null);
   const router = useRouter();
-  const [expandedMessages, setExpandedMessages] = useState<
-    Record<string, Record<number, boolean>>
-  >({});
-  const [activeTab, setActiveTab] = useState("basic");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const { data: session } = authClient.useSession()
   
-  if (!session) redirect("/sign-in");
-
-  const toggleMessageExpand = useCallback(
-    (user: string, index: number) => {
-      console.log("Toggling message:", { user, index });
-      console.log("Before:", expandedMessages);
-
-      setExpandedMessages((prev) => {
-        const newState = {
-          ...prev,
-          [user]: {
-            ...(prev[user] || {}),
-            [index]: !prev[user]?.[index],
-          },
-        };
-
-        console.log("After:", newState);
-        return newState;
-      });
-    },
-    [expandedMessages]
-  );
+  const { data: session, isPending } = authClient.useSession();
+  
+  useEffect(() => {
+    if (!isPending && !session) {
+      redirect("/sign-in");
+    }
+  }, [session, isPending]);
 
   useEffect(() => {
-    try {
-      const savedData = localStorage.getItem("chatStats");
-
-      if (!savedData) {
-        toast.error("No chat data found");
-        router.push("/");
-        return;
+    const fetchAnalyses = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/analyses", {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch analyses");
+        }
+        
+        const data = await response.json();
+        setAnalyses(data);
+      } catch (error) {
+        console.error("Error fetching analyses:", error);
+        toast.error("Failed to load analyses history");
+      } finally {
+        setIsLoading(false);
       }
-
-      const parsedData = JSON.parse(savedData);
-
-      const parsedStats = parsedData.stats ? parsedData.stats : parsedData;
-      const timestamp = parsedData.timestamp || null;
-
-      console.log("Loaded stats from localStorage:", {
-        totalMessages: parsedStats.totalMessages,
-        totalWords: parsedStats.totalWords,
-        cachedAt: timestamp,
-      });
-
-      setStats(parsedStats);
-      setCacheTimestamp(timestamp);
-    } catch (error) {
-      console.error("Error loading chat stats:", error);
-      toast.error("Failed to load chat data");
-      router.push("/");
-    } finally {
-      setIsLoading(false);
+    };
+    
+    if (session) {
+      fetchAnalyses();
     }
-  }, [router]);
+  }, [session]);
 
-  const handleUploadNewChat = () => {
+  const handleViewAnalysis = (id: string) => {
+    router.push(`/dashboard/${id}`);
+  };
+
+  const handleNewAnalysis = () => {
     router.push("/");
+  };
+
+  const handleDeleteAnalysis = async (id: string) => {
+    try {
+      const response = await fetch(`/api/analyses/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete analysis');
+      }
+      
+      toast.success('Analysis deleted successfully');
+      
+      // Update the analyses list by removing the deleted one
+      setAnalyses(analyses.filter(analysis => analysis.id !== id));
+    } catch (error) {
+      console.error('Error deleting analysis:', error);
+      toast.error('Failed to delete analysis');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + " " + date.toLocaleTimeString();
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading analytics...</div>
+        <div className="text-xl">Loading dashboard...</div>
       </div>
     );
   }
-
-  if (!stats) {
-    console.error("Stats object is null after loading");
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">No data available</div>
-      </div>
-    );
-  }
-
-  if (stats.messagesByUser && stats.messagesByUser.unknown) {
-    delete stats.messagesByUser.unknown;
-    stats.totalMessages = Object.values(stats.messagesByUser).reduce(
-      (sum, count) => sum + (count as number),
-      0
-    );
-  }
-
-  const safeStats = createSafeStats(stats);
-
-  console.log("Stats loaded successfully:", {
-    totalMessages: safeStats.totalMessages,
-    totalWords: safeStats.totalWords,
-    editedMessages: safeStats.editedMessages?.total,
-    avgWordsPerMessage:
-      safeStats.totalMessages > 0
-        ? safeStats.totalWords / safeStats.totalMessages
-        : 0,
-  });
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row justify-between md:items-center pb-4 mb-4 md:pb-8 md:mb-8 border-b">
         <div>
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-            Chat Analytics
+            Dashboard
           </h1>
-          {cacheTimestamp && (
-            <p className="text-sm text-gray-500 mt-1">
-              Analysis from {new Date(cacheTimestamp).toLocaleString()}
-            </p>
-          )}
+          <p className="text-sm text-gray-500 mt-1">
+            View and access your previous chat analyses
+          </p>
         </div>
-        <AlertDialog>
-          <AlertDialogTrigger asChild className="mt-4 md:mt-0 w-full md:w-fit">
-            <Button variant="outline">Upload New Chat</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Upload New Chat?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will take you to the upload page. Your current analysis will be cleared.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleUploadNewChat}>
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <Button onClick={handleNewAnalysis} className="mt-4 md:mt-0">
+          New Analysis
+        </Button>
       </div>
 
-      {/* Desktop Tabs */}
-      <div className="hidden md:block">
-        <Tabs
-          defaultValue="basic"
-          className="w-full"
-          value={activeTab}
-          onValueChange={setActiveTab}
-        >
-          <TabsList className="mb-6 w-full">
-            <TabsTrigger value="basic">Basic Stats</TabsTrigger>
-            <TabsTrigger value="time">Response Times</TabsTrigger>
-            <TabsTrigger value="activity">Activity Patterns</TabsTrigger>
-            <TabsTrigger value="media">Media</TabsTrigger>
-            <TabsTrigger value="emoji">Emoji Analysis</TabsTrigger>
-            <TabsTrigger value="phrases">Phrase Analysis</TabsTrigger>
-            <TabsTrigger value="ai">AI Insights</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
-
-      {/* Mobile Navigation */}
-      <div className="md:hidden mb-6">
-        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-          <DrawerTrigger asChild>
-            <Button
-              variant="outline"
-              className="w-full flex justify-between items-center"
-            >
-              <span>
-                {activeTab === "basic"
-                  ? "Basic Stats"
-                  : activeTab === "time"
-                  ? "Response Times"
-                  : activeTab === "media"
-                  ? "Media"
-                  : activeTab === "emoji"
-                  ? "Emoji Analysis"
-                  : activeTab === "phrases"
-                  ? "Phrase Analysis"
-                  : activeTab === "ai"
-                  ? "AI Insights"
-                  : "Activity Patterns"}
-              </span>
-              <Menu className="h-4 w-4" />
-            </Button>
-          </DrawerTrigger>
-          <DrawerContent className="h-[32rem] px-4">
-            <div className="grid grid-cols-1 gap-4 pt-14">
-              <Button
-                variant={activeTab === "basic" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("basic");
-                  setDrawerOpen(false);
-                }}
-                className="justify-start"
-              >
-                Basic Stats
-              </Button>
-              <Button
-                variant={activeTab === "time" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("time");
-                  setDrawerOpen(false);
-                }}
-                className="justify-start"
-              >
-                Response Times
-              </Button>
-              <Button
-                variant={activeTab === "media" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("media");
-                  setDrawerOpen(false);
-                }}
-                className="justify-start"
-              >
-                Media
-              </Button>
-              <Button
-                variant={activeTab === "emoji" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("emoji");
-                  setDrawerOpen(false);
-                }}
-                className="justify-start"
-              >
-                Emoji Analysis
-              </Button>
-              <Button
-                variant={activeTab === "phrases" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("phrases");
-                  setDrawerOpen(false);
-                }}
-                className="justify-start"
-              >
-                Phrase Analysis
-              </Button>
-              <Button
-                variant={activeTab === "activity" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("activity");
-                  setDrawerOpen(false);
-                }}
-                className="justify-start"
-              >
-                Activity Patterns
-              </Button>
-              <Button
-                variant={activeTab === "ai" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("ai");
-                  setDrawerOpen(false);
-                }}
-                className="justify-start"
-              >
-                AI Insights
-              </Button>
-            </div>
-          </DrawerContent>
-        </Drawer>
-      </div>
-
-      {/* Tabs Content (Works with both desktop and mobile) */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        {/* Basic Stats Tab */}
-        <TabsContent value="basic" className="space-y-6">
-          <BasicStats
-            stats={safeStats}
-            expandedMessages={expandedMessages}
-            toggleMessageExpand={toggleMessageExpand}
-          />
-        </TabsContent>
-
-        {/* Response Times Tab */}
-        <TabsContent value="time" className="space-y-6">
-          <Suspense fallback={<TabLoadingFallback />}>
-            <ResponseTimes stats={safeStats} />
-          </Suspense>
-        </TabsContent>
-
-        {/* Activity Patterns Tab */}
-        <TabsContent value="activity" className="space-y-6">
-          <Suspense fallback={<TabLoadingFallback />}>
-            <ActivityPatterns stats={safeStats} />
-          </Suspense>
-        </TabsContent>
-
-        {/* Media Tab */}
-        <TabsContent value="media" className="space-y-6">
-          <Suspense fallback={<TabLoadingFallback />}>
-            <Media stats={safeStats} />
-          </Suspense>
-        </TabsContent>
-
-        {/* Emoji Analysis Tab */}
-        <TabsContent value="emoji" className="space-y-6">
-          <Suspense fallback={<TabLoadingFallback />}>
-            <EmojiAnalysis stats={safeStats} />
-          </Suspense>
-        </TabsContent>
-
-        {/* Phrase Analysis Tab */}
-        <TabsContent value="phrases" className="space-y-6">
-          <Suspense fallback={<TabLoadingFallback />}>
-            <PhraseAnalysis stats={safeStats} />
-          </Suspense>
-        </TabsContent>
-
-        {/* AI Insights Tab */}
-        <TabsContent value="ai" className="space-y-6">
-          <AIInsights stats={safeStats} onUploadNewChat={handleUploadNewChat} />
-        </TabsContent>
-      </Tabs>
+      {analyses.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
+          <h2 className="text-xl font-medium text-gray-900 mb-2">
+            No analyses yet
+          </h2>
+          <p className="text-gray-500 mb-6 text-center max-w-md">
+            You haven&apos;t analyzed any chats yet. Upload a chat file to get started.
+          </p>
+          <Button onClick={handleNewAnalysis}>
+            Analyze Your First Chat
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-6">
+          <Card className="w-full overflow-x-auto">
+            <CardHeader>
+              <CardTitle>Your Chat Analyses</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Platform</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Messages</TableHead>
+                      <TableHead>Participants</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {analyses.map((analysis) => (
+                      <TableRow key={analysis.id}>
+                        <TableCell className="font-medium">
+                          {analysis.name || "Untitled Analysis"}
+                        </TableCell>
+                        <TableCell>
+                          {analysis.platform.charAt(0).toUpperCase() + analysis.platform.slice(1)}
+                        </TableCell>
+                        <TableCell>{formatDate(analysis.createdAt)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <MessageCircle className="h-4 w-4 text-gray-500" />
+                            <span>{analysis.totalMessages.toLocaleString()}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <Users className="h-4 w-4 text-gray-500" />
+                            <span>{analysis.participantCount}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => handleViewAnalysis(analysis.id)}
+                          >
+                            View Analysis
+                          </Button>
+                          
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Analysis?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete this analysis and all its data.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDeleteAnalysis(analysis.id)}
+                                  className="bg-red-500 hover:bg-red-600"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

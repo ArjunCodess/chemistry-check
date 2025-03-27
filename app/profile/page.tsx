@@ -1,19 +1,35 @@
-'use client'
+"use client";
 
 import { Button } from "@/components/ui/button";
 import SignOutButton from "@/components/sign-out-button";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { useEffect } from "react";
 
 export default function ProfilePage() {
-  const { data: session } = authClient.useSession()
-  
-  if (!session) redirect("/sign-in");
+  const { data: session, isPending } = authClient.useSession();
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      redirect("/sign-in");
+    }
+  }, [session, isPending]);
+
+  if (!session) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl">Loading profile...</div>
+      </div>
+    );
+  }
 
   const { user } = session;
 
-  const isGoogleAccount = user.image?.includes('googleusercontent.com') || false;
+  const isGoogleAccount =
+    user.image?.includes("googleusercontent.com") || false;
 
   return (
     <div className="mx-auto max-w-4xl md:px-4 md:py-12">
@@ -22,7 +38,7 @@ export default function ProfilePage() {
           <div className="relative h-24 w-24">
             <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
               {user.image ? (
-                <Image 
+                <Image
                   src={user.image}
                   alt={user.name || "User"}
                   width={96}
@@ -39,8 +55,18 @@ export default function ProfilePage() {
             </div>
             {user.emailVerified && (
               <div className="absolute border bottom-2 -right-0.5 h-6 w-6 rounded-full bg-green-100 flex items-center justify-center">
-                <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="h-4 w-4 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
             )}
@@ -61,22 +87,28 @@ export default function ProfilePage() {
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Name</dt>
-              <dd className="mt-1 text-sm text-gray-900">{user.name || "Not provided"}</dd>
+              <dd className="mt-1 text-sm text-gray-900">
+                {user.name || "Not provided"}
+              </dd>
             </div>
             <div>
               <dt className="text-sm font-medium text-gray-500">Account ID</dt>
               <dd className="mt-1 text-sm text-gray-900">{user.id}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Account Created</dt>
+              <dt className="text-sm font-medium text-gray-500">
+                Account Created
+              </dt>
               <dd className="mt-1 text-sm text-gray-900">
-                {user.createdAt 
-                  ? new Date(user.createdAt).toLocaleDateString() 
+                {user.createdAt
+                  ? new Date(user.createdAt).toLocaleDateString()
                   : "Unknown"}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Authentication Provider</dt>
+              <dt className="text-sm font-medium text-gray-500">
+                Authentication Provider
+              </dt>
               <dd className="mt-1 text-sm text-gray-900">
                 {isGoogleAccount ? (
                   <span className="inline-flex items-center">
@@ -105,16 +137,15 @@ export default function ProfilePage() {
           </dl>
         </div>
 
-        <div className="mt-8 border-t border-gray-200 pt-8">
-          <h2 className="mb-4 text-xl font-semibold">Your Analysis History</h2>
-          <p className="text-gray-600">
-            You haven&apos;t analyzed any conversations yet. Upload a chat file to get started!
-          </p>
-          <Button className="mt-4" asChild>
-            <a href="/history">View History</a>
+        <Link
+          href="/dashboard"
+          className="mt-8 border-t border-gray-200 pt-8 flex items-center justify-between"
+        >
+          <Button className="w-full">
+            View Your Analysis History <ArrowRight />
           </Button>
-        </div>
+        </Link>
       </div>
     </div>
   );
-} 
+}

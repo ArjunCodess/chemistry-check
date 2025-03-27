@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { History, LayoutDashboard, LogOut, User } from "lucide-react";
+import { LayoutDashboard, LogOut, User } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function Header() {
@@ -48,15 +48,15 @@ export default function Header() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="relative h-10 w-10 rounded-full"
+                className="relative h-8 w-8 rounded-full"
               >
-                <Avatar className="h-10 w-10 rounded-full">
+                <Avatar className="h-8 w-8 rounded-full">
                   <AvatarImage
                     src={session.user.image || ""}
                     alt={session.user.name || "User"}
-                    className="h-10 w-10 rounded-full"
+                    className="h-8 w-8 rounded-full"
                   />
-                  <AvatarFallback className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-800">
+                  <AvatarFallback className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-800">
                     {session.user.name?.[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -67,12 +67,6 @@ export default function Header() {
                 <Link href="/dashboard" className="flex items-center gap-2">
                   <LayoutDashboard className="h-4 w-4" />
                   <span>Dashboard</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/history" className="flex items-center gap-2">
-                  <History className="h-4 w-4" />
-                  <span>History</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

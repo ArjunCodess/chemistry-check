@@ -8,17 +8,26 @@ import { PlatformSelector } from "./platform-selector";
 import { FileUpload } from "./file-upload";
 import { ExportInstructions } from "./export-instructions";
 import { PLATFORM_INSTRUCTIONS, Platform } from "@/lib/platform-instructions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth-client";
 
 export function ChatAnalyzerForm() {
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [platform, setPlatform] = useState<Platform | null>(null);
+  const [name, setName] = useState("");
   const router = useRouter();
+  const { data: session } = authClient.useSession();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
     }
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,36 +39,52 @@ export function ChatAnalyzerForm() {
       return;
     }
 
+    if (!session?.user) {
+      toast.error("You must be signed in to analyze chats");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("platform", platform);
-
+      formData.append("name", name || "Untitled Analysis");
+      
       const response = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
+        // The credentials: 'include' is key for sending cookies
+        credentials: 'include',
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to analyze chat");
+        console.error("API error response:", data);
+        throw new Error(data.error || data.details || "Failed to analyze chat");
       }
 
-      const stats = await response.json();
-
       // Store stats in localStorage for the dashboard
-      localStorage.setItem("chatStats", JSON.stringify(stats));
+      localStorage.setItem("chatStats", JSON.stringify({
+        stats: data,
+        timestamp: new Date().toISOString(),
+      }));
 
       toast.success("Chat analysis complete!");
 
       // Add a small delay before redirecting to show the toast
       setTimeout(() => {
-        router.push("/dashboard");
+        // Redirect to the specific analysis page
+        if (data.analysisId) {
+          router.push(`/dashboard/${data.analysisId}`);
+        } else {
+          router.push("/dashboard");
+        }
       }, 1500);
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error("Failed to analyze chat");
+      toast.error(error instanceof Error ? error.message : "Failed to analyze chat");
     } finally {
       setIsLoading(false);
     }
@@ -69,15 +94,28 @@ export function ChatAnalyzerForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="analysis-name">Analysis Name (optional)</Label>
+        <Input
+          id="analysis-name"
+          type="text"
+          placeholder="E.g., 'Conversation with Alex' or 'Group Chat Analysis'"
+          value={name}
+          onChange={handleNameChange}
+        />
+      </div>
       <PlatformSelector platform={platform} setPlatform={setPlatform as (p: Platform) => void} />
       <FileUpload handleFileChange={handleFileChange} />
       <Button
         type="submit"
-        disabled={!file || !platform || isLoading}
+        disabled={!file || !platform || isLoading || !session}
         className="w-full py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base transition-colors"
       >
         {isLoading ? "Analyzing..." : "Analyze Chat"}
       </Button>
+      {!session && (
+        <p className="text-sm text-red-500">You must be signed in to analyze chats</p>
+      )}
       {platform && <ExportInstructions steps={platformSteps} />}
     </form>
   );

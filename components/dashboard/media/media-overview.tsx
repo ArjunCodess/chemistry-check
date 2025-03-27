@@ -57,14 +57,14 @@ export function MediaOverview({ stats }: MediaOverviewProps) {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center">
-          <div className="mb-6 flex flex-wrap gap-4 justify-between w-full">
+          <div className="mb-6 flex flex-row gap-4 justify-between w-full">
             <div className={`bg-gray-50 p-4 rounded-lg ${!isWhatsApp ? 'w-1/2' : 'w-full'}`}>
               <h3 className="text-sm text-muted-foreground">Total Media</h3>
               <p className="text-2xl font-bold">{stats.mediaStats?.total || 0}</p>
             </div>
             
             {!isWhatsApp && (
-              <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="bg-gray-50 p-4 rounded-lg w-1/2">
                 <p className="text-sm text-gray-500">Total Size</p>
                 <p className="text-xl font-semibold">
                   {formatFileSize(stats?.mediaStats?.totalSize ?? 0)}

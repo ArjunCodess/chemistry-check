@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, json, uuid } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -50,4 +50,18 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at"),
 });
 
-export const schema = { user, session, account, verification };
+export const chatAnalysis = pgTable("chat_analysis", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  platform: text("platform").notNull(),
+  name: text("name"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  stats: json("stats").notNull(),
+  totalMessages: integer("total_messages"),
+  totalWords: integer("total_words"),
+  participantCount: integer("participant_count"),
+});
+
+export const schema = { user, session, account, verification, chatAnalysis };

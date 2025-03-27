@@ -14,14 +14,14 @@ import { LongestMessagesCard } from "./longest-messages-card";
 
 interface BasicStatsProps {
   stats: ChatStats;
-  expandedMessages: Record<string, Record<number, boolean>>;
-  toggleMessageExpand: (user: string, index: number) => void;
+  expandedMessages?: Record<string, Record<number, boolean>>;
+  toggleMessageExpand?: (user: string, index: number) => void;
 }
 
 export function BasicStats({
   stats,
-  expandedMessages,
-  toggleMessageExpand,
+  expandedMessages = {},
+  toggleMessageExpand = () => {},
 }: BasicStatsProps) {
   return (
     <Suspense
