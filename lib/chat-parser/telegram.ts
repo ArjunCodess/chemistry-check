@@ -1,6 +1,21 @@
 import { TelegramMessage, TelegramChatData, ResponseTimeStats, MediaStats, EmojiCombination, EmojiStats, RelationshipHealthScore, InterestPercentage, CookedStatus } from '@/types';
 import { generateAIInsights } from '@/actions/ai';
 
+/**
+ * Helper function to extract text from a message object
+ */
+function getMessageText(message: TelegramMessage): string {
+  if (!message.text) {
+    return '';
+  }
+  
+  return typeof message.text === 'string' 
+    ? message.text 
+    : Array.isArray(message.text) 
+      ? message.text.map(t => typeof t === 'string' ? t : t.text).join(' ')
+      : '';
+}
+
 export async function parseChatData(data: TelegramChatData) {
   console.log("Starting to parse chat data with", data.messages?.length || 0, "messages");
   
@@ -8,6 +23,7 @@ export async function parseChatData(data: TelegramChatData) {
   if (!data || !data.messages || !Array.isArray(data.messages)) {
     console.error("Invalid chat data format", data);
     return {
+      source: "telegram",
       totalMessages: 0,
       messagesByUser: {},
       totalWords: 0,
@@ -71,6 +87,7 @@ export async function parseChatData(data: TelegramChatData) {
   
   // Initialize primary stats object
   const stats = {
+    source: "telegram",
     totalMessages: 0,
     messagesByUser: {} as Record<string, number>,
     totalWords: 0,
@@ -209,120 +226,126 @@ export async function parseChatData(data: TelegramChatData) {
 
     // Process ANY message with text content, regardless of type
     if (message.text) {
-      // Get message text as string
-      const messageText = typeof message.text === 'string' 
-        ? message.text 
-        : Array.isArray(message.text) 
-          ? message.text.map(t => typeof t === 'string' ? t : t.text).join(' ')
-          : '';
+      // Get message text as string  
+      const messageText = getMessageText(message);
       
-      // Check for sorry/apologies
-      const normalizedText = messageText.toLowerCase().trim();
-      if (normalizedText.includes('sorry') || 
-          normalizedText.includes('apolog') || 
-          normalizedText.includes('regret') || 
-          normalizedText.includes('forgive') ||
-          normalizedText.includes('my bad') ||
-          normalizedText.includes('my fault')) {
-        stats.sorryByUser[user] = (stats.sorryByUser[user] || 0) + 1;
-      }
+      // Skip counting words for system/service messages
+      const isSystemMessage = message.action || 
+                             (typeof messageText === 'string' && 
+                             (messageText.includes('joined the group') || 
+                              messageText.includes('created the group') || 
+                              messageText.includes('changed the group') || 
+                              messageText.includes('pinned a message') ||
+                              messageText.includes('left the group') ||
+                              messageText.includes('invited') || 
+                              messageText.includes('banned'))
+                             );
       
-      // Count words with simplified logic
-      const words = messageText
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean); // Remove empty strings
-      
-      const wordCount = words.length;
-      
-      if (wordCount > 0) {
-        debugWordCount += wordCount;
-        totalWordCount += wordCount;
-        stats.totalWords += wordCount;
-        
-        // Track by user
-        userWordCounts[user] = (userWordCounts[user] || 0) + wordCount;
-        stats.wordsByUser[user] = (stats.wordsByUser[user] || 0) + wordCount;
-        
-        // Log first few messages for debugging
-        if (index < 10 || index % 1000 === 0) {
-          console.log(`Message #${index} from ${user}: "${messageText.substring(0, 30)}..." - Words: ${wordCount}`);
+      if (!isSystemMessage) {
+        // Check for sorry/apologies
+        const normalizedText = messageText.toLowerCase().trim();
+        if (normalizedText.includes('sorry') || 
+            normalizedText.includes('apolog') || 
+            normalizedText.includes('regret') || 
+            normalizedText.includes('forgive') ||
+            normalizedText.includes('my bad') ||
+            normalizedText.includes('my fault')) {
+          stats.sorryByUser[user] = (stats.sorryByUser[user] || 0) + 1;
         }
         
-        // Track longest messages for this user (keep top 3)
-        if (!stats.longestMessages[user]) {
-          stats.longestMessages[user] = [];
-        }
+        // Count words with simplified logic
+        const words = messageText
+          .trim()
+          .split(/\s+/)
+          .filter(Boolean); // Remove empty strings
         
-        // Store the complete message text (not truncated)
-        const messageDate = message.date ? new Date(message.date).toLocaleDateString() : 'Unknown date';
+        const wordCount = words.length;
         
-        // Add this message to the user's list
-        stats.longestMessages[user].push({
-          text: messageText, // Store complete message text, not truncated
-          length: wordCount,
-          date: messageDate
-        });
-        
-        // Sort messages by length (descending) and keep only top 3
-        stats.longestMessages[user].sort((a, b) => b.length - a.length);
-        if (stats.longestMessages[user].length > 3) {
-          stats.longestMessages[user] = stats.longestMessages[user].slice(0, 3);
-        }
-      }
-
-      // Initialize user's word frequency map if it doesn't exist
-      if (!wordFrequencyByUser[user]) {
-        wordFrequencyByUser[user] = {};
-      }
-
-      // Count word frequency with basic cleaning
-      words.forEach((word: string) => {
-        // Simple clean to lowercase
-        const cleanWord = word.toLowerCase().replace(/[^\w\s]/g, '');
-        if (cleanWord && cleanWord.length > 0) { // Count all words including single letters
-          // Track global word frequency
-          stats.wordFrequency[cleanWord] = (stats.wordFrequency[cleanWord] || 0) + 1;
+        if (wordCount > 0) {
+          debugWordCount += wordCount;
+          totalWordCount += wordCount;
+          stats.totalWords += wordCount;
           
-          // Track word frequency by user
-          wordFrequencyByUser[user][cleanWord] = (wordFrequencyByUser[user][cleanWord] || 0) + 1;
-        }
-      });
-
-      // Process emojis with improved regex that excludes numbers and regular characters
-      try {
-        // More specific emoji regex that excludes numbers and basic characters
-        // This regex focuses on actual Unicode emoji characters
-        const emojiRegex = /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g;
-        const emojis = String(message.text).match(emojiRegex) || [];
-        
-        if (emojis.length > 0) {
-          // Initialize emoji stats for user if needed
-          if (!stats.emojiStats.byUser[user]) {
-            stats.emojiStats.byUser[user] = {};
+          // Track by user
+          userWordCounts[user] = (userWordCounts[user] || 0) + wordCount;
+          stats.wordsByUser[user] = (stats.wordsByUser[user] || 0) + wordCount;
+          
+          // Log first few messages for debugging
+          if (index < 10 || index % 1000 === 0) {
+            console.log(`Message #${index} from ${user}: "${messageText.substring(0, 30)}..." - Words: ${wordCount}`);
           }
           
-          emojis.forEach(emoji => {
-            // Skip any single digit numbers or basic punctuation characters
-            if (/^\d$/.test(emoji) || /^[.,!?;:\-_'"()[\]{}]$/.test(emoji)) {
-              return;
-            }
-            
-            // Global emoji frequency
-            stats.emojiFrequency[emoji] = (stats.emojiFrequency[emoji] || 0) + 1;
-            stats.emojiStats.frequency[emoji] = (stats.emojiStats.frequency[emoji] || 0) + 1;
-            
-            // User-specific emoji frequency
-            stats.emojiStats.byUser[user][emoji] = (stats.emojiStats.byUser[user][emoji] || 0) + 1;
+          // Track longest messages for this user (keep top 3)
+          if (!stats.longestMessages[user]) {
+            stats.longestMessages[user] = [];
+          }
+          
+          // Store the complete message text (not truncated)
+          const messageDate = message.date ? new Date(message.date).toLocaleDateString() : 'Unknown date';
+          
+          // Add this message to the user's list
+          stats.longestMessages[user].push({
+            text: messageText, // Store complete message text, not truncated
+            length: wordCount,
+            date: messageDate
           });
+          
+          // Sort messages by length (descending) and keep only top 3
+          stats.longestMessages[user].sort((a, b) => b.length - a.length);
+          if (stats.longestMessages[user].length > 3) {
+            stats.longestMessages[user] = stats.longestMessages[user].slice(0, 3);
+          }
         }
-      } catch (error) {
-        console.error("Error processing emojis:", error);
+
+        // Initialize user's word frequency map if it doesn't exist
+        if (!wordFrequencyByUser[user]) {
+          wordFrequencyByUser[user] = {};
+        }
+
+        // Count word frequency with basic cleaning
+        words.forEach((word: string) => {
+          // Simple clean to lowercase
+          const cleanWord = word.toLowerCase().replace(/[^\w\s]/g, '');
+          if (cleanWord && cleanWord.length > 0) { // Count all words including single letters
+            // Track global word frequency
+            stats.wordFrequency[cleanWord] = (stats.wordFrequency[cleanWord] || 0) + 1;
+            
+            // Track word frequency by user
+            wordFrequencyByUser[user][cleanWord] = (wordFrequencyByUser[user][cleanWord] || 0) + 1;
+          }
+        });
       }
-    } else {
-      if (index < 10) {
-        console.log(`Message #${index} from ${user} has no text property, type: ${message.type}`);
+    }
+
+    // Process emojis with improved regex that excludes numbers and regular characters
+    try {
+      // More specific emoji regex that excludes numbers and basic characters
+      // This regex focuses on actual Unicode emoji characters
+      const emojiRegex = /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g;
+      const emojis = String(message.text).match(emojiRegex) || [];
+      
+      if (emojis.length > 0) {
+        // Initialize emoji stats for user if needed
+        if (!stats.emojiStats.byUser[user]) {
+          stats.emojiStats.byUser[user] = {};
+        }
+        
+        emojis.forEach(emoji => {
+          // Skip any single digit numbers or basic punctuation characters
+          if (/^\d$/.test(emoji) || /^[.,!?;:\-_'"()[\]{}]$/.test(emoji)) {
+            return;
+          }
+          
+          // Global emoji frequency
+          stats.emojiFrequency[emoji] = (stats.emojiFrequency[emoji] || 0) + 1;
+          stats.emojiStats.frequency[emoji] = (stats.emojiStats.frequency[emoji] || 0) + 1;
+          
+          // User-specific emoji frequency
+          stats.emojiStats.byUser[user][emoji] = (stats.emojiStats.byUser[user][emoji] || 0) + 1;
+        });
       }
+    } catch (error) {
+      console.error("Error processing emojis:", error);
     }
 
     // Process sticker emojis

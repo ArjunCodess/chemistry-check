@@ -6,6 +6,8 @@ interface OverviewCardProps {
 }
 
 export function OverviewCard({ stats }: OverviewCardProps) {
+  const isInstagram = stats.source === "instagram";
+
   return (
     <Card className="h-full">
       <CardHeader>
@@ -25,12 +27,14 @@ export function OverviewCard({ stats }: OverviewCardProps) {
               {stats.totalWords.toLocaleString()}
             </span>
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium">Edited Messages:</span>
-            <span className="font-semibold">
-              {(stats.editedMessages?.total || 0).toLocaleString()}
-            </span>
-          </div>
+          {!isInstagram && (
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Edited Messages:</span>
+              <span className="font-semibold">
+                {(stats.editedMessages?.total || 0).toLocaleString()}
+              </span>
+            </div>
+          )}
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Avg Words/Message:</span>
             <span className="font-semibold">
@@ -43,4 +47,4 @@ export function OverviewCard({ stats }: OverviewCardProps) {
       </CardContent>
     </Card>
   );
-} 
+}

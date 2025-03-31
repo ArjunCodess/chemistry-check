@@ -19,6 +19,9 @@ export interface MediaStats {
     stickers: number;
     animations: number;
     links: number;
+    reels?: number;
+    stories?: number;
+    posts?: number;
   };
   totalSize: number;
   byUser: Record<
@@ -32,6 +35,9 @@ export interface MediaStats {
         stickers: number;
         animations: number;
         links: number;
+        reels?: number;
+        stories?: number;
+        posts?: number;
       };
       totalSize: number;
     }
@@ -188,4 +194,31 @@ export interface CookedStatus {
   isCooked: boolean;
   user: string;
   confidence: number; // 0-100
+}
+
+export interface InstagramMessage {
+  sender_name: string;
+  timestamp_ms: number;
+  content?: string;
+  share?: {
+    link?: string;
+    share_text?: string;
+    original_content_owner?: string;
+  };
+  photos?: Array<{
+    uri: string;
+    creation_timestamp: number;
+  }>;
+  reactions?: Array<{
+    reaction: string;
+    actor: string;
+    timestamp: number;
+  }>;
+  is_geoblocked_for_viewer?: boolean;
+  is_unsent_image_by_messenger_kid_parent?: boolean;
+}
+
+export interface InstagramChatData {
+  participants: Array<{ name: string }>;
+  messages: InstagramMessage[];
 }

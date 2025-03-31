@@ -92,12 +92,43 @@ export const createSafeStats = (stats: ChatStats | null): ChatStats => {
 };
 
 export const getMediaByTypeData = (stats: ChatStats) => {
-  return [
+  const isInstagram = stats.source === "instagram";
+  const standardTypes = [
     { name: "Images", value: stats?.mediaStats?.byType?.images ?? 0 },
     { name: "Videos", value: stats?.mediaStats?.byType?.videos ?? 0 },
     { name: "GIFs", value: stats?.mediaStats?.byType?.animations ?? 0 },
     { name: "Documents", value: stats?.mediaStats?.byType?.documents ?? 0 },
     { name: "Stickers", value: stats?.mediaStats?.byType?.stickers ?? 0 },
     { name: "Links", value: stats?.mediaStats?.byType?.links ?? 0 },
-  ].filter((item) => item.value > 0);
-}; 
+  ];
+  
+  // Add Instagram-specific media types if this is Instagram data
+  const instagramTypes = isInstagram ? [
+    { name: "Reels", value: stats?.mediaStats?.byType?.reels ?? 0 },
+    { name: "Stories", value: stats?.mediaStats?.byType?.stories ?? 0 },
+    { name: "Posts", value: stats?.mediaStats?.byType?.posts ?? 0 },
+  ] : [];
+  
+  return [...standardTypes, ...instagramTypes].filter((item) => item.value > 0);
+};
+
+// Response time stats for analyzing user engagement patterns
+export interface ResponseTimeStats {
+  average: number;
+  median: number;
+  fastest: number;
+  slowest: number;
+  distribution: ResponseTimeDistribution;
+}
+
+// Distribution of response times across different time buckets
+export interface ResponseTimeDistribution {
+  under1min: number;
+  under5min: number;
+  under15min: number;
+  under30min: number;
+  under1hour: number;
+  under3hours: number;
+  under8hours: number;
+  under24hours: number;
+} 

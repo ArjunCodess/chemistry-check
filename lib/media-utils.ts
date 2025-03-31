@@ -26,9 +26,19 @@ export function getMediaTypePercentages(stats: ChatStats): Record<string, number
   }
   
   const total = stats.mediaStats.total;
-  const { images, videos, documents, stickers, animations, links } = stats.mediaStats.byType;
+  const { 
+    images, 
+    videos, 
+    documents, 
+    stickers, 
+    animations, 
+    links,
+    reels,
+    stories,
+    posts
+  } = stats.mediaStats.byType;
   
-  return {
+  const percentages: Record<string, number> = {
     images: Math.round((images / total) * 100),
     videos: Math.round((videos / total) * 100),
     documents: Math.round((documents / total) * 100),
@@ -36,6 +46,13 @@ export function getMediaTypePercentages(stats: ChatStats): Record<string, number
     animations: Math.round((animations / total) * 100),
     links: Math.round((links / total) * 100)
   };
+  
+  // Add Instagram-specific media types if they exist
+  if (reels) percentages.reels = Math.round((reels / total) * 100);
+  if (stories) percentages.stories = Math.round((stories / total) * 100);
+  if (posts) percentages.posts = Math.round((posts / total) * 100);
+  
+  return percentages;
 }
 
 /**

@@ -8,6 +8,7 @@ interface MediaByUserProps {
 
 export function MediaByUser({ stats }: MediaByUserProps) {
   const isWhatsApp = stats.source === "whatsapp";
+  const isInstagram = stats.source === "instagram";
   
   // Get all users with media stats
   const users = Object.entries(stats.mediaStats?.byUser || {}).sort(
@@ -61,25 +62,8 @@ export function MediaByUser({ stats }: MediaByUserProps) {
 
                 {/* For WhatsApp, only show Other Media and Links */}
                 {isWhatsApp ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="bg-gray-50 p-3 rounded-md flex gap-2 items-center">
-                      <span className="text-lg">📄</span>
-                      <div>
-                        <p className="text-xs text-gray-500 leading-tight">
-                          Other Media
-                        </p>
-                        <p className="font-medium">{userMedia.byType.documents}</p>
-                      </div>
-                    </div>
-                    <div className="bg-gray-50 p-3 rounded-md flex gap-2 items-center">
-                      <span className="text-lg">🔗</span>
-                      <div>
-                        <p className="text-xs text-gray-500 leading-tight">
-                          Links
-                        </p>
-                        <p className="font-medium">{userMedia.byType.links}</p>
-                      </div>
-                    </div>
+                  <div className="text-sm text-gray-600">
+                    WhatsApp does not provide detailed media type information
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-2">
@@ -114,7 +98,25 @@ export function MediaByUser({ stats }: MediaByUserProps) {
                         value: userMedia.byType.links,
                         icon: "🔗",
                       },
-                    ].map((item) => (
+                      // Instagram specific media types
+                      ...(isInstagram ? [
+                        {
+                          name: "Reels",
+                          value: userMedia.byType.reels || 0,
+                          icon: "🎞️",
+                        },
+                        {
+                          name: "Stories",
+                          value: userMedia.byType.stories || 0,
+                          icon: "📱",
+                        },
+                        {
+                          name: "Posts",
+                          value: userMedia.byType.posts || 0,
+                          icon: "📸",
+                        },
+                      ] : []),
+                    ].filter(item => item.value > 0).map((item) => (
                       <div
                         key={item.name}
                         className="bg-gray-50 p-3 rounded-md flex gap-2 items-center"

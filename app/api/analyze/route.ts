@@ -1,5 +1,5 @@
 import { parseChatData as parseTelegramChatData } from '@/lib/chat-parser/telegram';
-// import { parseChatData as parseInstagramChatData } from '@/lib/chat-parser/instagram';
+import { parseChatData as parseInstagramChatData } from '@/lib/chat-parser/instagram';
 import { parseChatData as parseWhatsappChatData } from '@/lib/chat-parser/whatsapp';
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
@@ -106,78 +106,80 @@ export async function POST(request: NextRequest) {
       console.log(`File text read: ${text.length} characters`);
 
       let stats;
-      console.log(`Processing ${platform} chat data`);
-      switch (platform) {
-        case 'telegram':
-          try {
-            const chatData = JSON.parse(text);
-            stats = await parseTelegramChatData(chatData);
-          } catch (parseError) {
-            console.error("Error parsing Telegram data:", parseError);
-            return NextResponse.json(
-              { error: 'Failed to parse Telegram data', details: String(parseError) },
-              { status: 400 }
-            );
-          }
-          break;
-        // case 'instagram':
-        //   stats = await parseInstagramChatData(chatData);
-        //   break;
-        case 'whatsapp':
-          try {
-            stats = await parseWhatsappChatData(text);
-          } catch (parseError) {
-            console.error("Error parsing WhatsApp data:", parseError);
-            return NextResponse.json(
-              { error: 'Failed to parse WhatsApp data', details: String(parseError) },
-              { status: 400 }
-            );
-          }
-          break;
-        default:
-          return NextResponse.json(
-            { error: 'Invalid platform specified' },
-            { status: 400 }
-          );
-      }
-
-      console.log("Chat data processed successfully");
-
-      // Calculate participant count
-      const participantCount = Object.keys(stats.messagesByUser || {}).length;
-      console.log(`Participant count: ${participantCount}`);
+      let participantCount = 0;
 
       try {
-        console.log("Saving analysis to database");
-        // Save the analysis to the database
-        const [savedAnalysis] = await db.insert(chatAnalysis).values({
-          userId,
-          platform,
-          name,
-          stats,
-          totalMessages: stats.totalMessages || 0,
-          totalWords: stats.totalWords || 0,
-          participantCount,
-        }).returning({ id: chatAnalysis.id });
+        // Parse the chat data based on the platform
+        if (platform === 'telegram') {
+          console.log("Processing Telegram chat...");
+          // For Telegram data, we expect a JSON file
+          const jsonData = JSON.parse(text);
+          stats = await parseTelegramChatData(jsonData);
 
-        console.log(`Analysis saved with ID: ${savedAnalysis.id}`);
+          // Count unique participants
+          participantCount = Object.keys(stats.messagesByUser).length;
+        } else if (platform === 'whatsapp') {
+          console.log("Processing WhatsApp chat...");
+          // For WhatsApp data, we expect a text file
+          stats = await parseWhatsappChatData(text);
 
-        // Add the ID to the response
-        return NextResponse.json({
-          ...stats,
-          analysisId: savedAnalysis.id
-        });
-      } catch (dbError) {
-        console.error("Database error:", dbError);
+          // Count unique participants
+          participantCount = Object.keys(stats.messagesByUser).length;
+        } else if (platform === 'instagram') {
+          console.log("Processing Instagram chat...");
+          // For Instagram data, we expect a JSON file
+          const jsonData = JSON.parse(text);
+          stats = await parseInstagramChatData(jsonData);
+
+          // Count unique participants
+          participantCount = Object.keys(stats.messagesByUser).length;
+        } else {
+          return NextResponse.json(
+            { error: 'Unsupported platform' },
+            { status: 400 }
+          );
+        }
+
+        console.log("Chat data processed successfully");
+
+        try {
+          console.log("Saving analysis to database");
+          // Save the analysis to the database
+          const [savedAnalysis] = await db.insert(chatAnalysis).values({
+            userId,
+            platform,
+            name,
+            stats,
+            totalMessages: stats.totalMessages || 0,
+            totalWords: stats.totalWords || 0,
+            participantCount,
+          }).returning({ id: chatAnalysis.id });
+
+          console.log(`Analysis saved with ID: ${savedAnalysis.id}`);
+
+          // Add the ID to the response
+          return NextResponse.json({
+            ...stats,
+            analysisId: savedAnalysis.id
+          });
+        } catch (dbError) {
+          console.error("Database error:", dbError);
+          return NextResponse.json(
+            { error: 'Failed to save analysis to database', details: String(dbError) },
+            { status: 500 }
+          );
+        }
+      } catch (processingError) {
+        console.error("Error processing chat data:", processingError);
         return NextResponse.json(
-          { error: 'Failed to save analysis to database', details: String(dbError) },
+          { error: 'Failed to process chat data', details: String(processingError) },
           { status: 500 }
         );
       }
-    } catch (processingError) {
-      console.error("Error processing chat data:", processingError);
+    } catch (error) {
+      console.error('Error processing file:', error);
       return NextResponse.json(
-        { error: 'Failed to process chat data', details: String(processingError) },
+        { error: 'Failed to process file', details: String(error) },
         { status: 500 }
       );
     }

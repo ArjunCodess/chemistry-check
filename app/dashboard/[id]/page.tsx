@@ -273,7 +273,7 @@ export default function AnalysisDashboard() {
                       }
 
                       toast.success("Analysis deleted successfully");
-                      router.push("/history");
+                      router.push("/dashboard");
                     } catch (error) {
                       console.error("Error deleting analysis:", error);
                       toast.error("Failed to delete analysis");

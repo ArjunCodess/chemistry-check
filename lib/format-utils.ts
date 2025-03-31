@@ -31,3 +31,15 @@ export function formatDuration(minutes: number): string {
   if (mins === 0) return `${hours} hr`;
   return `${hours} hr ${mins} min`;
 }
+
+/**
+ * Decode Unicode escape sequences in Instagram content
+ */
+export function decodeInstagramEmojis(text: string): string {
+  try {
+    return decodeURIComponent(escape(text));
+  } catch {
+    // If there's an error, return original text
+    return text;
+  }
+}

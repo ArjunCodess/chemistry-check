@@ -194,49 +194,48 @@ export async function parseChatData(rawText: string): Promise<ChatStats> {
         const normalizedText = message.content.toLowerCase().trim();
         
         // Filter out special WhatsApp messages before checking for apologies
-        if (
+        const isSpecialMessage = 
           normalizedText === "this message was deleted" || 
           normalizedText === "you deleted this message" ||
           normalizedText.includes("<this message was edited>") ||
           normalizedText === "<media omitted>" ||
-          normalizedText.includes("media omitted")
-        ) {
-          return; // Skip these special message types
-        }
+          normalizedText.includes("media omitted");
         
-        if (normalizedText.includes('sorry') || 
-            normalizedText.includes('apolog') || 
-            normalizedText.includes('regret') || 
-            normalizedText.includes('forgive') ||
-            normalizedText.includes('my bad') ||
-            normalizedText.includes('my fault')) {
-          stats.sorryByUser[user] = (stats.sorryByUser[user] || 0) + 1;
-        }
-        
-        // Process emojis
-        processEmojis(message.content, user, stats);
-        
-        // Process links
-        if (message.content.includes('http://') || message.content.includes('https://')) {
-          if (!stats.mediaStats.byUser[user]) {
-            stats.mediaStats.byUser[user] = {
-              total: 0,
-              byType: {
-                images: 0,
-                videos: 0,
-                documents: 0,
-                stickers: 0,
-                animations: 0,
-                links: 0
-              },
-              totalSize: 0
-            };
+        if (!isSpecialMessage) {
+          if (normalizedText.includes('sorry') || 
+              normalizedText.includes('apolog') || 
+              normalizedText.includes('regret') || 
+              normalizedText.includes('forgive') ||
+              normalizedText.includes('my bad') ||
+              normalizedText.includes('my fault')) {
+            stats.sorryByUser[user] = (stats.sorryByUser[user] || 0) + 1;
           }
           
-          stats.mediaStats.total++;
-          stats.mediaStats.byType.links++;
-          stats.mediaStats.byUser[user].total++;
-          stats.mediaStats.byUser[user].byType.links++;
+          // Process emojis
+          processEmojis(message.content, user, stats);
+          
+          // Process links
+          if (message.content.includes('http://') || message.content.includes('https://')) {
+            if (!stats.mediaStats.byUser[user]) {
+              stats.mediaStats.byUser[user] = {
+                total: 0,
+                byType: {
+                  images: 0,
+                  videos: 0,
+                  documents: 0,
+                  stickers: 0,
+                  animations: 0,
+                  links: 0
+                },
+                totalSize: 0
+              };
+            }
+            
+            stats.mediaStats.total++;
+            stats.mediaStats.byType.links++;
+            stats.mediaStats.byUser[user].total++;
+            stats.mediaStats.byUser[user].byType.links++;
+          }
         }
       }
     });

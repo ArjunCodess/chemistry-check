@@ -6,14 +6,27 @@ import dynamic from "next/dynamic";
 
 function getMediaByTypeData(stats: ChatStats) {
   const mediaStats = stats.mediaStats?.byType || {};
-  return [
+  const isInstagram = stats.source === "instagram";
+
+  const standardTypes = [
     { name: "Images", value: mediaStats.images || 0 },
     { name: "Videos", value: mediaStats.videos || 0 },
     { name: "GIFs", value: mediaStats.animations || 0 },
     { name: "Documents", value: mediaStats.documents || 0 },
     { name: "Stickers", value: mediaStats.stickers || 0 },
     { name: "Links", value: mediaStats.links || 0 },
-  ].filter((item) => item.value > 0);
+  ];
+
+  // Add Instagram-specific types if they exist and we're dealing with Instagram data
+  const instagramTypes = isInstagram
+    ? [
+        { name: "Reels", value: mediaStats.reels || 0 },
+        { name: "Stories", value: mediaStats.stories || 0 },
+        { name: "Posts", value: mediaStats.posts || 0 },
+      ]
+    : [];
+
+  return [...standardTypes, ...instagramTypes].filter((item) => item.value > 0);
 }
 
 interface MediaOverviewProps {
@@ -29,13 +42,25 @@ const PieChart = dynamic(() => import("@/components/charts/pie-chart"), {
 
 export function MediaOverview({ stats }: MediaOverviewProps) {
   const isWhatsApp = stats.source === "whatsapp";
-  
-  const mediaData = isWhatsApp 
+  const isInstagram = stats.source === "instagram";
+  const isTelegram = stats.source === "telegram";
+
+  const mediaData = isWhatsApp
     ? [
-        { name: "Other Media", value: stats.mediaStats?.byType?.documents || 0 },
-        { name: "Links", value: stats.mediaStats?.byType?.links || 0 }
-      ].filter(item => item.value > 0)
+        {
+          name: "Other Media",
+          value: stats.mediaStats?.byType?.documents || 0,
+        },
+        { name: "Links", value: stats.mediaStats?.byType?.links || 0 },
+      ].filter((item) => item.value > 0)
     : getMediaByTypeData(stats);
+
+  // Find Instagram-specific media counts
+  const instagramReels = isInstagram ? stats.mediaStats?.byType?.reels || 0 : 0;
+  const instagramStories = isInstagram
+    ? stats.mediaStats?.byType?.stories || 0
+    : 0;
+  const instagramPosts = isInstagram ? stats.mediaStats?.byType?.posts || 0 : 0;
 
   if (mediaData.length === 0) {
     return (
@@ -57,13 +82,16 @@ export function MediaOverview({ stats }: MediaOverviewProps) {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center">
+          {/* Top Stats Row - Basic View */}
           <div className="mb-6 flex flex-row gap-4 justify-between w-full">
-            <div className={`bg-gray-50 p-4 rounded-lg ${!isWhatsApp ? 'w-1/2' : 'w-full'}`}>
+            <div className={`bg-gray-50 p-4 rounded-lg ${isTelegram ? 'w-1/2' : 'w-full'}`}>
               <h3 className="text-sm text-muted-foreground">Total Media</h3>
-              <p className="text-2xl font-bold">{stats.mediaStats?.total || 0}</p>
+              <p className="text-2xl font-bold">
+                {stats.mediaStats?.total || 0}
+              </p>
             </div>
-            
-            {!isWhatsApp && (
+
+            {isTelegram && (
               <div className="bg-gray-50 p-4 rounded-lg w-1/2">
                 <p className="text-sm text-gray-500">Total Size</p>
                 <p className="text-xl font-semibold">
@@ -73,7 +101,42 @@ export function MediaOverview({ stats }: MediaOverviewProps) {
             )}
           </div>
 
-          <Suspense 
+          {/* For Instagram, show special media types in cards like in the image */}
+          {isInstagram && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 w-full">
+              <div className="bg-pink-50 p-4 rounded-lg flex items-center">
+                <div className="flex-1">
+                  <h3 className="text-pink-800 font-medium">Instagram Reels</h3>
+                  <p className="text-2xl font-bold text-pink-600">
+                    {instagramReels}
+                  </p>
+                </div>
+                <div className="text-3xl">📱</div>
+              </div>
+
+              <div className="bg-blue-50 p-4 rounded-lg flex items-center">
+                <div className="flex-1">
+                  <h3 className="text-blue-800 font-medium">Story Shares</h3>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {instagramStories}
+                  </p>
+                </div>
+                <div className="text-3xl">🎭</div>
+              </div>
+
+              <div className="bg-yellow-50 p-4 rounded-lg flex items-center">
+                <div className="flex-1">
+                  <h3 className="text-yellow-800 font-medium">Post Shares</h3>
+                  <p className="text-2xl font-bold text-yellow-600">
+                    {instagramPosts}
+                  </p>
+                </div>
+                <div className="text-3xl">📷</div>
+              </div>
+            </div>
+          )}
+
+          <Suspense
             fallback={
               <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
             }
