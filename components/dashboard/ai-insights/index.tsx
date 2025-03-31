@@ -3,6 +3,7 @@ import { ChatStats } from "@/types";
 import { ChatSummaryCard } from "./chat-summary-card";
 import { RelationshipHealthCard } from "./relationship-health-card";
 import { InterestPercentageCard } from "./interest-percentage-card";
+import { AttachmentStyleCard } from "./attachment-style-card";
 
 interface AIInsightsProps {
   stats: ChatStats;
@@ -21,10 +22,14 @@ export function AIInsights({ stats, onUploadNewChat }: AIInsightsProps) {
         </div>
       }
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <ChatSummaryCard stats={stats} onUploadNewChat={onUploadNewChat} />
-        <RelationshipHealthCard stats={stats} />
-        <InterestPercentageCard stats={stats} />
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ChatSummaryCard stats={stats} onUploadNewChat={onUploadNewChat} />
+          <RelationshipHealthCard stats={stats} />
+          <InterestPercentageCard stats={stats} />
+        </div>
+        
+        <AttachmentStyleCard stats={stats} />
       </div>
     </Suspense>
   );

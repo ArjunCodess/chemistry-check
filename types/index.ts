@@ -167,6 +167,7 @@ export interface ChatStats {
     user: string;
     confidence: number;
   };
+  attachmentStyles?: Record<string, AttachmentStyle>;
 }
 
 export interface RelationshipHealthScore {
@@ -194,6 +195,20 @@ export interface CookedStatus {
   isCooked: boolean;
   user: string;
   confidence: number; // 0-100
+}
+
+export interface AttachmentStyle {
+  user: string;
+  primaryStyle: string;
+  secondaryStyle?: string;
+  confidence: number; // 0-100
+  details: {
+    secure: number;
+    anxious: number;
+    avoidant: number;
+    disorganized: number;
+  };
+  description: string;
 }
 
 export interface InstagramMessage {

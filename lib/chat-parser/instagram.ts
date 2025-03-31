@@ -1,4 +1,4 @@
-import { ChatStats, InstagramMessage, InstagramChatData, ResponseTimeStats, MediaStats, EmojiCombination, EmojiStats, RelationshipHealthScore, InterestPercentage, CookedStatus } from '@/types';
+import { ChatStats, InstagramMessage, InstagramChatData, ResponseTimeStats, MediaStats, EmojiCombination, EmojiStats, RelationshipHealthScore, InterestPercentage, CookedStatus, AttachmentStyle } from '@/types';
 import { generateAIInsights } from '@/actions/ai';
 import { decodeInstagramEmojis } from '../format-utils';
 
@@ -77,7 +77,8 @@ export async function parseChatData(data: InstagramChatData): Promise<ChatStats>
       percentage: number;
       mostCommonSorry: string;
     } | undefined,
-    equalApologies: true
+    equalApologies: true,
+    attachmentStyles: {} as Record<string, AttachmentStyle> | undefined
   } as ChatStats;
   
   // Initialize time-based pattern tracking
@@ -353,6 +354,7 @@ export async function parseChatData(data: InstagramChatData): Promise<ChatStats>
     stats.relationshipHealthScore = aiInsights.relationshipHealthScore;
     stats.interestPercentage = aiInsights.interestPercentage;
     stats.cookedStatus = aiInsights.cookedStatus;
+    stats.attachmentStyles = aiInsights.attachmentStyles;
     
     console.log("AI insights generated successfully for Instagram chat");
   } catch (error) {
@@ -899,7 +901,8 @@ function getDefaultStats(): ChatStats {
       isCooked: false,
       user: "Unknown",
       confidence: 0
-    }
+    },
+    attachmentStyles: {}
   };
 }
 

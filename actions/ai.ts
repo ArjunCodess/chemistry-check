@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { ChatStats, RelationshipHealthScore, InterestPercentage, CookedStatus } from "@/types";
+import { ChatStats, RelationshipHealthScore, InterestPercentage, CookedStatus, AttachmentStyle } from "@/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -61,6 +61,19 @@ export async function generateAIInsights(stats: ChatStats, sampleMessages: Array
       5. Determine if one user is "cooked" - meaning they're showing much more interest or effort in the conversation than the other. 
          Being "cooked" means they're clearly more invested in the relationship/conversation.
       
+      6. Analyze each participant's attachment style based on their messaging behavior:
+         - Secure: Shows consistent communication, healthy boundaries, direct expression of needs
+         - Anxious: Shows fear of abandonment, excessive messaging, seeks constant reassurance
+         - Avoidant: Shows emotional distance, delayed responses, avoids deep conversation
+         - Disorganized: Shows unpredictable patterns, mixed signals, hot/cold behavior
+         
+         For each person, provide:
+         - Primary attachment style
+         - Secondary attachment style (if applicable)
+         - Percentage breakdown of each style
+         - Short description explaining their attachment patterns
+         - Confidence level of this assessment (0-100)
+      
       Chat Statistics:
       ${JSON.stringify(chatSummary, null, 2)}
       
@@ -104,6 +117,33 @@ export async function generateAIInsights(stats: ChatStats, sampleMessages: Array
           "isCooked": true,
           "user": "User1",
           "confidence": 90
+        },
+        "attachmentStyles": {
+          "User1": {
+            "user": "User1",
+            "primaryStyle": "Anxious",
+            "secondaryStyle": "Secure",
+            "confidence": 85,
+            "details": {
+              "secure": 35,
+              "anxious": 60,
+              "avoidant": 10,
+              "disorganized": 5
+            },
+            "description": "Shows signs of anxious attachment with frequent messaging and seeking reassurance, but also has secure tendencies in expressing needs directly."
+          },
+          "User2": {
+            "user": "User2",
+            "primaryStyle": "Avoidant",
+            "confidence": 75,
+            "details": {
+              "secure": 20,
+              "anxious": 5,
+              "avoidant": 70,
+              "disorganized": 5
+            },
+            "description": "Displays classic avoidant behavior with delayed responses and emotional distance."
+          }
         }
       }
     `;
@@ -124,7 +164,8 @@ export async function generateAIInsights(stats: ChatStats, sampleMessages: Array
       aiSummary: insights.aiSummary,
       relationshipHealthScore: insights.relationshipHealthScore,
       interestPercentage: insights.interestPercentage,
-      cookedStatus: insights.cookedStatus
+      cookedStatus: insights.cookedStatus,
+      attachmentStyles: insights.attachmentStyles
     };
   } catch (error) {
     console.error("Error generating AI insights:", error);
@@ -137,6 +178,7 @@ function getDefaultAIInsights(stats: ChatStats): {
   relationshipHealthScore: RelationshipHealthScore;
   interestPercentage: Record<string, InterestPercentage>;
   cookedStatus: CookedStatus;
+  attachmentStyles: Record<string, AttachmentStyle>;
 } {
   const users = Object.keys(stats.messagesByUser || {});
   
@@ -157,7 +199,8 @@ function getDefaultAIInsights(stats: ChatStats): {
       isCooked: false,
       user: users.length > 0 ? users[0] : "Unknown",
       confidence: 0
-    }
+    },
+    attachmentStyles: {} as Record<string, AttachmentStyle>
   };
   
   users.forEach(user => {
@@ -169,6 +212,19 @@ function getDefaultAIInsights(stats: ChatStats): {
         enthusiasm: 50,
         consistency: 50
       }
+    };
+    
+    defaultInsights.attachmentStyles[user] = {
+      user: user,
+      primaryStyle: "Unknown",
+      confidence: 0,
+      details: {
+        secure: 25,
+        anxious: 25,
+        avoidant: 25,
+        disorganized: 25
+      },
+      description: "Attachment style analysis could not be generated."
     };
   });
   

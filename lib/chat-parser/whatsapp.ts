@@ -1,4 +1,4 @@
-import { WhatsAppMessage, ChatStats } from '@/types';
+import { WhatsAppMessage, ChatStats, AttachmentStyle } from '@/types';
 
 export async function parseChatData(rawText: string): Promise<ChatStats> {
   const stats: ChatStats = {
@@ -313,6 +313,7 @@ export async function parseChatData(rawText: string): Promise<ChatStats> {
       stats.relationshipHealthScore = aiInsights.relationshipHealthScore;
       stats.interestPercentage = aiInsights.interestPercentage;
       stats.cookedStatus = aiInsights.cookedStatus;
+      stats.attachmentStyles = aiInsights.attachmentStyles;
       
       console.log("AI insights generated successfully for WhatsApp chat");
     } catch (error) {
@@ -1025,6 +1026,7 @@ async function generateAIInsights(messages: WhatsAppMessage[], stats: ChatStats)
     user: string;
     confidence: number;
   };
+  attachmentStyles: Record<string, AttachmentStyle>;
 }> {
   try {
     if (!process.env.GEMINI_API_KEY) {
@@ -1142,6 +1144,33 @@ async function generateAIInsights(messages: WhatsAppMessage[], stats: ChatStats)
           "isCooked": true,
           "user": "User1",
           "confidence": 90
+        },
+        "attachmentStyles": {
+          "User1": {
+            "user": "User1",
+            "primaryStyle": "Anxious",
+            "secondaryStyle": "Secure",
+            "confidence": 85,
+            "details": {
+              "secure": 35,
+              "anxious": 60,
+              "avoidant": 10,
+              "disorganized": 5
+            },
+            "description": "Shows signs of anxious attachment with frequent messaging and seeking reassurance."
+          },
+          "User2": {
+            "user": "User2",
+            "primaryStyle": "Avoidant",
+            "confidence": 75,
+            "details": {
+              "secure": 20,
+              "anxious": 5,
+              "avoidant": 70,
+              "disorganized": 5
+            },
+            "description": "Displays classic avoidant behavior with delayed responses."
+          }
         }
       }
     `;
@@ -1191,7 +1220,8 @@ async function generateAIInsights(messages: WhatsAppMessage[], stats: ChatStats)
         aiSummary: insights.aiSummary,
         relationshipHealthScore: insights.relationshipHealthScore,
         interestPercentage: insights.interestPercentage,
-        cookedStatus: insights.cookedStatus
+        cookedStatus: insights.cookedStatus,
+        attachmentStyles: insights.attachmentStyles
       };
     } catch (parseError) {
       console.error("Error parsing Gemini API response:", parseError);
@@ -1230,6 +1260,7 @@ function getDefaultAIInsights(stats: ChatStats): {
     user: string;
     confidence: number;
   };
+  attachmentStyles: Record<string, AttachmentStyle>;
 } {
   // Get users from the stats
   const users = Object.keys(stats.messagesByUser || {});
@@ -1260,7 +1291,8 @@ function getDefaultAIInsights(stats: ChatStats): {
       isCooked: false,
       user: users.length > 0 ? users[0] : "Unknown",
       confidence: 0
-    }
+    },
+    attachmentStyles: {} as Record<string, AttachmentStyle>
   };
   
   // Add interest percentage for each user

@@ -46,7 +46,7 @@ export function RelationshipHealthCard({ stats }: RelationshipHealthCardProps) {
             {/* Detail scores */}
             <div className="space-y-2">
               <h4 className="font-medium text-sm">Details</h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs">
                     <span>Balance</span>
