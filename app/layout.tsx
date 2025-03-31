@@ -4,6 +4,8 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import Header from "@/components/header";
 import { config } from "dotenv";
+import { Analytics } from "@vercel/analytics/react";
+import Script from "next/script";
 
 config({ path: ".env" });
 
@@ -15,7 +17,14 @@ export const metadata: Metadata = {
   applicationName: "TeXtRay",
   authors: [{ name: "Arjun Vijay Prakash" }],
   generator: "Next.js",
-  keywords: ["chat analysis", "messaging", "analytics", "AI", "insights", "communication patterns"],
+  keywords: [
+    "chat analysis",
+    "messaging",
+    "analytics",
+    "AI",
+    "insights",
+    "communication patterns",
+  ],
   referrer: "origin-when-cross-origin",
   creator: "Arjun Vijay Prakash",
   publisher: "Arjun Vijay Prakash",
@@ -30,15 +39,15 @@ export const metadata: Metadata = {
         url: "/og-image.png",
         width: 1200,
         height: 600,
-        alt: "TeXtRay - Chat Analysis & Insights"
-      }
-    ]
+        alt: "TeXtRay - Chat Analysis & Insights",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TeXtRay - Chat Analysis & Insights", 
+    title: "TeXtRay - Chat Analysis & Insights",
     description: "AI-powered chat analysis tool for messaging platforms",
-    images: ["/og-image.png"]
+    images: ["/og-image.png"],
   },
   icons: "/logo.svg",
 };
@@ -54,7 +63,13 @@ export default function RootLayout({
         <Header />
         {children}
         <Toaster />
+        <Analytics />
       </body>
+      <Script
+        defer
+        data-domain="textray.vercel.app"
+        src="https://getanalyzr.vercel.app/tracking-script.js"
+      />
     </html>
   );
 }
