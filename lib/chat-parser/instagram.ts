@@ -355,6 +355,7 @@ export async function parseChatData(data: InstagramChatData): Promise<ChatStats>
     stats.interestPercentage = aiInsights.interestPercentage;
     stats.cookedStatus = aiInsights.cookedStatus;
     stats.attachmentStyles = aiInsights.attachmentStyles;
+    stats.matchPercentage = aiInsights.matchPercentage;
     
     console.log("AI insights generated successfully for Instagram chat");
   } catch (error) {

@@ -82,7 +82,8 @@ export async function parseChatData(data: TelegramChatData) {
       },
       mostApologeticUser: undefined,
       equalApologies: true,
-      attachmentStyles: undefined
+      attachmentStyles: undefined,
+      matchPercentage: undefined
     };
   }
   
@@ -149,7 +150,8 @@ export async function parseChatData(data: TelegramChatData) {
       mostCommonSorry: string;
     } | undefined,
     equalApologies: true,
-    attachmentStyles: undefined
+    attachmentStyles: undefined,
+    matchPercentage: undefined
   };
   
   // Track message counts and word counts by user
@@ -790,6 +792,7 @@ export async function parseChatData(data: TelegramChatData) {
     stats.interestPercentage = aiInsights.interestPercentage;
     stats.cookedStatus = aiInsights.cookedStatus;
     stats.attachmentStyles = aiInsights.attachmentStyles;
+    stats.matchPercentage = aiInsights.matchPercentage;
     
     console.log("AI insights generated successfully");
   } catch (error) {

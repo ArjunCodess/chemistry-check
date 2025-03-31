@@ -314,6 +314,7 @@ export async function parseChatData(rawText: string): Promise<ChatStats> {
       stats.interestPercentage = aiInsights.interestPercentage;
       stats.cookedStatus = aiInsights.cookedStatus;
       stats.attachmentStyles = aiInsights.attachmentStyles;
+      stats.matchPercentage = aiInsights.matchPercentage;
       
       console.log("AI insights generated successfully for WhatsApp chat");
     } catch (error) {
@@ -1027,6 +1028,14 @@ async function generateAIInsights(messages: WhatsAppMessage[], stats: ChatStats)
     confidence: number;
   };
   attachmentStyles: Record<string, AttachmentStyle>;
+  matchPercentage: {
+    score: number;
+    compatibility: {
+      reasons: string[];
+      incompatibilities: string[];
+    };
+    confidence: number;
+  };
 }> {
   try {
     if (!process.env.GEMINI_API_KEY) {
@@ -1096,6 +1105,25 @@ async function generateAIInsights(messages: WhatsAppMessage[], stats: ChatStats)
          
       5. Determine if one user is "cooked" - meaning they're showing much more interest or effort in the conversation than the other. 
          Being "cooked" means they're clearly more invested in the relationship/conversation.
+      
+      6. Analyze each participant's attachment style based on their messaging behavior:
+         - Secure: Shows consistent communication, healthy boundaries, direct expression of needs
+         - Anxious: Shows fear of abandonment, excessive messaging, seeks constant reassurance
+         - Avoidant: Shows emotional distance, delayed responses, avoids deep conversation
+         - Disorganized: Shows unpredictable patterns, mixed signals, hot/cold behavior
+         
+         For each person, provide:
+         - Primary attachment style
+         - Secondary attachment style (if applicable)
+         - Percentage breakdown of each style
+         - Short description explaining their attachment patterns
+         - Confidence level of this assessment (0-100)
+      
+      7. Calculate a match percentage (0-100) that indicates how compatible the participants are, and provide:
+         - Overall compatibility score (0-100)
+         - List of reasons why they are compatible/suitable for each other (at least 3 points)
+         - List of incompatibilities/reasons they might not be suitable (at least 3 points)
+         - Confidence level of this assessment (0-100)
       
       Chat Statistics:
       ${JSON.stringify(chatSummary, null, 2)}
@@ -1171,6 +1199,22 @@ async function generateAIInsights(messages: WhatsAppMessage[], stats: ChatStats)
             },
             "description": "Displays classic avoidant behavior with delayed responses."
           }
+        },
+        "matchPercentage": {
+          "score": 65,
+          "compatibility": {
+            "reasons": [
+              "Both show consistent communication patterns throughout the day",
+              "They share similar interests based on topic discussions",
+              "Their communication styles complement each other"
+            ],
+            "incompatibilities": [
+              "Significant difference in response times",
+              "Unbalanced emotional investment in the conversation",
+              "Different attachment styles may create friction"
+            ]
+          },
+          "confidence": 80
         }
       }
     `;
@@ -1209,22 +1253,101 @@ async function generateAIInsights(messages: WhatsAppMessage[], stats: ChatStats)
       // Extract the response text from Gemini
       const responseText = result.candidates[0].content.parts[0].text;
       
-      // Parse the JSON response
-      // Use regex to extract the JSON part if needed
+      // Improved JSON extraction and parsing
       const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      const jsonString = jsonMatch ? jsonMatch[0] : responseText;
+      let jsonString = jsonMatch ? jsonMatch[0] : responseText;
       
-      const insights = JSON.parse(jsonString);
-      
-      return {
-        aiSummary: insights.aiSummary,
-        relationshipHealthScore: insights.relationshipHealthScore,
-        interestPercentage: insights.interestPercentage,
-        cookedStatus: insights.cookedStatus,
-        attachmentStyles: insights.attachmentStyles
-      };
-    } catch (parseError) {
-      console.error("Error parsing Gemini API response:", parseError);
+      try {
+        // First attempt to parse as is
+        const insights = JSON.parse(jsonString);
+        
+        return {
+          aiSummary: insights.aiSummary,
+          relationshipHealthScore: insights.relationshipHealthScore,
+          interestPercentage: insights.interestPercentage,
+          cookedStatus: insights.cookedStatus,
+          attachmentStyles: insights.attachmentStyles,
+          matchPercentage: insights.matchPercentage
+        };
+      } catch (parseError) {
+        console.error("JSON parsing error:", parseError);
+        
+        // Try to repair common JSON issues - first attempt
+        try {
+          console.log("Attempting first JSON repair...");
+          // Fix trailing commas
+          jsonString = jsonString.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+          
+          // Fix missing quotes around property names
+          jsonString = jsonString.replace(/(\{|\,)\s*([a-zA-Z0-9_]+)\s*\:/g, '$1"$2":');
+          
+          // Try parsing again after repairs
+          const insights = JSON.parse(jsonString);
+          
+          return {
+            aiSummary: insights.aiSummary,
+            relationshipHealthScore: insights.relationshipHealthScore,
+            interestPercentage: insights.interestPercentage,
+            cookedStatus: insights.cookedStatus,
+            attachmentStyles: insights.attachmentStyles,
+            matchPercentage: insights.matchPercentage
+          };
+        } catch (repairError) {
+          console.error("First repair attempt failed:", repairError);
+          
+          // Try more aggressive JSON repair - second attempt
+          try {
+            console.log("Attempting second JSON repair...");
+            
+            // Try to extract just the main parts we need using regex patterns
+            const aiSummaryMatch = responseText.match(/"aiSummary"\s*:\s*"([^"]*)"/);
+            
+            // If we can extract at least the basic info, construct a simpler valid JSON
+            if (aiSummaryMatch) {
+              console.log("Extracted partial data through regex");
+              const simplifiedJSON = {
+                aiSummary: aiSummaryMatch[1],
+                relationshipHealthScore: {
+                  overall: 50,
+                  details: {
+                    balance: 50, 
+                    engagement: 50, 
+                    positivity: 50, 
+                    consistency: 50
+                  },
+                  redFlags: []
+                },
+                interestPercentage: {},
+                cookedStatus: {
+                  isCooked: false,
+                  user: Object.keys(stats.messagesByUser || {})[0] || "Unknown",
+                  confidence: 0
+                },
+                attachmentStyles: {},
+                matchPercentage: {
+                  score: 50,
+                  compatibility: {
+                    reasons: ["Compatibility analysis could not be fully generated."],
+                    incompatibilities: ["Incompatibility analysis could not be fully generated."]
+                  },
+                  confidence: 0
+                }
+              };
+              
+              return simplifiedJSON;
+            }
+            
+            console.error("Failed to repair JSON - all attempts exhausted");
+            console.error("Original response:", responseText.substring(0, 500) + "...");
+            return getDefaultAIInsights(stats);
+          } catch (finalAttemptError) {
+            console.error("All JSON repair attempts failed:", finalAttemptError);
+            return getDefaultAIInsights(stats);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing Gemini API response:", error);
       return getDefaultAIInsights(stats);
     }
   } catch (error) {
@@ -1261,6 +1384,14 @@ function getDefaultAIInsights(stats: ChatStats): {
     confidence: number;
   };
   attachmentStyles: Record<string, AttachmentStyle>;
+  matchPercentage: {
+    score: number;
+    compatibility: {
+      reasons: string[];
+      incompatibilities: string[];
+    };
+    confidence: number;
+  };
 } {
   // Get users from the stats
   const users = Object.keys(stats.messagesByUser || {});
@@ -1292,7 +1423,15 @@ function getDefaultAIInsights(stats: ChatStats): {
       user: users.length > 0 ? users[0] : "Unknown",
       confidence: 0
     },
-    attachmentStyles: {} as Record<string, AttachmentStyle>
+    attachmentStyles: {} as Record<string, AttachmentStyle>,
+    matchPercentage: {
+      score: 50,
+      compatibility: {
+        reasons: ["Compatibility analysis could not be generated."],
+        incompatibilities: ["Incompatibility analysis could not be generated."]
+      },
+      confidence: 0
+    }
   };
   
   // Add interest percentage for each user

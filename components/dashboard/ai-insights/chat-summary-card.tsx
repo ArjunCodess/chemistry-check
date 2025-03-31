@@ -9,7 +9,7 @@ interface ChatSummaryCardProps {
 
 export function ChatSummaryCard({ stats, onUploadNewChat }: ChatSummaryCardProps) {
   return (
-    <Card className="col-span-1 md:col-span-2">
+    <Card>
       <CardHeader>
         <CardTitle>AI-Generated Chat Summary</CardTitle>
         <CardDescription>

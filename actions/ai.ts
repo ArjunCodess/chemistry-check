@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { ChatStats, RelationshipHealthScore, InterestPercentage, CookedStatus, AttachmentStyle } from "@/types";
+import { ChatStats, RelationshipHealthScore, InterestPercentage, CookedStatus, AttachmentStyle, MatchPercentage } from "@/types";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
@@ -11,7 +11,7 @@ const generationConfig = {
   temperature: 0.2,
   topP: 0.95,
   topK: 40,
-  maxOutputTokens: 1000,
+  maxOutputTokens: 5000,
 };
 
 export async function generateAIInsights(stats: ChatStats, sampleMessages: Array<{ from: string; text: string; date: string }>) {
@@ -73,12 +73,20 @@ export async function generateAIInsights(stats: ChatStats, sampleMessages: Array
          - Percentage breakdown of each style
          - Short description explaining their attachment patterns
          - Confidence level of this assessment (0-100)
+         
+      7. Calculate a match percentage (0-100) that indicates how compatible the participants are, and provide:
+         - Overall compatibility score (0-100)
+         - List of reasons why they are compatible/suitable for each other (at least 3 points)
+         - List of incompatibilities/reasons they might not be suitable (at least 3 points)
+         - Confidence level of this assessment (0-100)
       
       Chat Statistics:
       ${JSON.stringify(chatSummary, null, 2)}
       
       Sample Messages:
       ${JSON.stringify(sampleMessages, null, 2)}
+      
+      IMPORTANT: In your response, use the actual names from the messages instead of "User1" or "User2".
       
       Respond in the following JSON format only:
       {
@@ -144,6 +152,22 @@ export async function generateAIInsights(stats: ChatStats, sampleMessages: Array
             },
             "description": "Displays classic avoidant behavior with delayed responses and emotional distance."
           }
+        },
+        "matchPercentage": {
+          "score": 65,
+          "compatibility": {
+            "reasons": [
+              "Both show consistent communication patterns throughout the day",
+              "They share similar interests based on topic discussions",
+              "Their communication styles complement each other"
+            ],
+            "incompatibilities": [
+              "Significant difference in response times",
+              "Unbalanced emotional investment in the conversation",
+              "Different attachment styles may create friction"
+            ]
+          },
+          "confidence": 80
         }
       }
     `;
@@ -156,17 +180,98 @@ export async function generateAIInsights(stats: ChatStats, sampleMessages: Array
     const responseText = result.response.text();
     
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    const jsonString = jsonMatch ? jsonMatch[0] : responseText;
+    let jsonString = jsonMatch ? jsonMatch[0] : responseText;
     
-    const insights = JSON.parse(jsonString);
-    
-    return {
-      aiSummary: insights.aiSummary,
-      relationshipHealthScore: insights.relationshipHealthScore,
-      interestPercentage: insights.interestPercentage,
-      cookedStatus: insights.cookedStatus,
-      attachmentStyles: insights.attachmentStyles
-    };
+    try {
+      // First attempt to parse as is
+      const insights = JSON.parse(jsonString);
+      
+      return {
+        aiSummary: insights.aiSummary,
+        relationshipHealthScore: insights.relationshipHealthScore,
+        interestPercentage: insights.interestPercentage,
+        cookedStatus: insights.cookedStatus,
+        attachmentStyles: insights.attachmentStyles,
+        matchPercentage: insights.matchPercentage
+      };
+    } catch (parseError) {
+      console.error("JSON parsing error:", parseError);
+      
+      // Try to repair common JSON issues - first attempt
+      try {
+        console.log("Attempting first JSON repair...");
+        // Fix trailing commas
+        jsonString = jsonString.replace(/,\s*}/g, '}').replace(/,\s*]/g, ']');
+        
+        // Fix missing quotes around property names
+        jsonString = jsonString.replace(/(\{|\,)\s*([a-zA-Z0-9_]+)\s*\:/g, '$1"$2":');
+        
+        // Try parsing again after repairs
+        const insights = JSON.parse(jsonString);
+        
+        return {
+          aiSummary: insights.aiSummary,
+          relationshipHealthScore: insights.relationshipHealthScore,
+          interestPercentage: insights.interestPercentage,
+          cookedStatus: insights.cookedStatus,
+          attachmentStyles: insights.attachmentStyles,
+          matchPercentage: insights.matchPercentage
+        };
+      } catch (repairError) {
+        console.error("First repair attempt failed:", repairError);
+        
+        // Try more aggressive JSON repair - second attempt
+        try {
+          console.log("Attempting second JSON repair...");
+          
+          // Try to extract just the main parts we need using regex patterns
+          // This is a last resort if the JSON is badly malformed
+          const aiSummaryMatch = responseText.match(/"aiSummary"\s*:\s*"([^"]*)"/);
+          
+          // If we can extract at least the basic info, construct a simpler valid JSON
+          if (aiSummaryMatch) {
+            console.log("Extracted partial data through regex");
+            const simplifiedJSON = {
+              aiSummary: aiSummaryMatch[1],
+              relationshipHealthScore: {
+                overall: 50,
+                details: {
+                  balance: 50, 
+                  engagement: 50, 
+                  positivity: 50, 
+                  consistency: 50
+                },
+                redFlags: []
+              },
+              interestPercentage: {},
+              cookedStatus: {
+                isCooked: false,
+                user: Object.keys(stats.messagesByUser || {})[0] || "Unknown",
+                confidence: 0
+              },
+              attachmentStyles: {},
+              matchPercentage: {
+                score: 50,
+                compatibility: {
+                  reasons: ["Compatibility analysis could not be fully generated."],
+                  incompatibilities: ["Incompatibility analysis could not be fully generated."]
+                },
+                confidence: 0
+              }
+            };
+            
+            return simplifiedJSON;
+          }
+          
+          console.error("Failed to repair JSON - all attempts exhausted");
+          console.error("Original response:", responseText.substring(0, 500) + "...");
+          return getDefaultAIInsights(stats);
+        } catch (finalAttemptError) {
+          console.error("All JSON repair attempts failed:", finalAttemptError);
+          return getDefaultAIInsights(stats);
+        }
+      }
+    }
   } catch (error) {
     console.error("Error generating AI insights:", error);
     return getDefaultAIInsights(stats);
@@ -179,6 +284,7 @@ function getDefaultAIInsights(stats: ChatStats): {
   interestPercentage: Record<string, InterestPercentage>;
   cookedStatus: CookedStatus;
   attachmentStyles: Record<string, AttachmentStyle>;
+  matchPercentage: MatchPercentage;
 } {
   const users = Object.keys(stats.messagesByUser || {});
   
@@ -200,7 +306,15 @@ function getDefaultAIInsights(stats: ChatStats): {
       user: users.length > 0 ? users[0] : "Unknown",
       confidence: 0
     },
-    attachmentStyles: {} as Record<string, AttachmentStyle>
+    attachmentStyles: {} as Record<string, AttachmentStyle>,
+    matchPercentage: {
+      score: 50,
+      compatibility: {
+        reasons: ["Compatibility analysis could not be generated."],
+        incompatibilities: ["Incompatibility analysis could not be generated."]
+      },
+      confidence: 0
+    }
   };
   
   users.forEach(user => {

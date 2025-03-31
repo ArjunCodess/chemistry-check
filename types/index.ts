@@ -168,6 +168,7 @@ export interface ChatStats {
     confidence: number;
   };
   attachmentStyles?: Record<string, AttachmentStyle>;
+  matchPercentage?: MatchPercentage;
 }
 
 export interface RelationshipHealthScore {
@@ -209,6 +210,15 @@ export interface AttachmentStyle {
     disorganized: number;
   };
   description: string;
+}
+
+export interface MatchPercentage {
+  score: number; // 0-100
+  compatibility: {
+    reasons: string[];
+    incompatibilities: string[];
+  };
+  confidence: number; // 0-100
 }
 
 export interface InstagramMessage {
