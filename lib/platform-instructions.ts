@@ -114,7 +114,7 @@ export const PLATFORM_INSTRUCTIONS: Record<Platform, InstructionStep[]> = {
     },
     {
       label: "Upload File",
-      description: "Upload the file using the choose file option below.",
+      description: "Upload the SPECIFIC file by navigating to your_instagram_activity -> messages -> inbox -> [USER_YOU_WANT_TO_ANALYZE] -> message_1.json using the 'Choose File' option above.",
     },
     {
       label: "Get Analysis",

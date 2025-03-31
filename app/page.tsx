@@ -30,7 +30,7 @@ export default function Home() {
   const isAuthenticated = !!session;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-100 to-white px-4 sm:p-6 md:p-8">
+    <main className="min-h-[calc(100vh-70px)] bg-gradient-to-b from-gray-100 to-white px-4 sm:p-6 md:p-8">
       <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl mx-auto">
         <Card className="bg-white/80 backdrop-blur-sm border-gray-200 shadow-sm">
           <CardHeader className="space-y-1 sm:space-y-2 px-4 sm:px-6">
