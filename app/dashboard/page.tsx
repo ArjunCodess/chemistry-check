@@ -126,7 +126,7 @@ export default function DashboardPage() {
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
             Dashboard
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-neutral-500 mt-1">
             View and access your previous chat analyses
           </p>
         </div>
@@ -137,11 +137,11 @@ export default function DashboardPage() {
 
       {analyses.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
-          <h2 className="text-xl font-medium text-gray-900 mb-2">
+          <AlertCircle className="h-12 w-12 text-neutral-400 mb-4" />
+          <h2 className="text-xl font-medium text-neutral-900 mb-2">
             No analyses yet
           </h2>
-          <p className="text-gray-500 mb-6 text-center max-w-md">
+          <p className="text-neutral-500 mb-6 text-center max-w-md">
             You haven&apos;t analyzed any chats yet. Upload a chat file to get started.
           </p>
           <Button onClick={handleNewAnalysis}>
@@ -179,13 +179,13 @@ export default function DashboardPage() {
                         <TableCell>{formatDate(analysis.createdAt)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <MessageCircle className="h-4 w-4 text-gray-500" />
+                            <MessageCircle className="h-4 w-4 text-neutral-500" />
                             <span>{analysis.totalMessages.toLocaleString()}</span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4 text-gray-500" />
+                            <Users className="h-4 w-4 text-neutral-500" />
                             <span>{analysis.participantCount}</span>
                           </div>
                         </TableCell>

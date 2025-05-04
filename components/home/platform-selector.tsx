@@ -20,7 +20,7 @@ export function PlatformSelector({ platform, setPlatform }: PlatformSelectorProp
     <div className="space-y-1 sm:space-y-2">
       <label
         htmlFor="platform"
-        className="block text-xs sm:text-sm font-medium text-gray-700"
+        className="block text-xs sm:text-sm font-medium text-neutral-700"
       >
         Select Platform
       </label>

@@ -58,7 +58,7 @@ export function ResponseTimesUserSummaryCard({
           </div>
         </div>
 
-        <div className="mt-4 flex w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="mt-4 flex w-full h-2 bg-neutral-200 rounded-full overflow-hidden">
           {/* Quick responses (0-5min) */}
           <div
             className="bg-primary h-full"

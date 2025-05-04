@@ -11,8 +11,8 @@ export function ExportInstructions({ steps }: ExportInstructionsProps) {
   if (steps.length === 0) return null;
 
   return (
-    <div className="space-y-2 sm:space-y-4 border p-4 pb-1 bg-gray-50 rounded-md">
-      <h3 className="text-sm font-medium text-gray-700">
+    <div className="space-y-2 sm:space-y-4 border p-4 pb-1 bg-neutral-50 rounded-md">
+      <h3 className="text-sm font-medium text-neutral-700">
         How to Export Your Chat
       </h3>
       <Stepper

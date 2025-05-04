@@ -19,7 +19,7 @@ export function WordsByUserCard({ stats }: WordsByUserCardProps) {
                 <span className="text-sm font-medium">{user}:</span>
                 <span className="font-semibold">{count} words</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-4">
+              <div className="w-full bg-neutral-100 rounded-full h-4">
                 <div
                   className="bg-green-500 h-4 rounded-full"
                   style={{

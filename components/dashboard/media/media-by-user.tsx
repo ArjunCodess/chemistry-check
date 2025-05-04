@@ -52,7 +52,7 @@ export function MediaByUser({ stats }: MediaByUserProps) {
                       </span>
                     )}
                   </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
+                  <div className="w-full bg-neutral-100 rounded-full h-2">
                     <div
                       className="bg-primary h-2 rounded-full"
                       style={{ width: `${percentOfTotal}%` }}
@@ -62,7 +62,7 @@ export function MediaByUser({ stats }: MediaByUserProps) {
 
                 {/* For WhatsApp, only show Other Media and Links */}
                 {isWhatsApp ? (
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-neutral-600">
                     WhatsApp does not provide detailed media type information
                   </div>
                 ) : (
@@ -119,11 +119,11 @@ export function MediaByUser({ stats }: MediaByUserProps) {
                     ].filter(item => item.value > 0).map((item) => (
                       <div
                         key={item.name}
-                        className="bg-gray-50 p-3 rounded-md flex gap-2 items-center"
+                        className="bg-neutral-50 p-3 rounded-md flex gap-2 items-center"
                       >
                         <span className="text-lg">{item.icon}</span>
                         <div>
-                          <p className="text-xs text-gray-500 leading-tight">
+                          <p className="text-xs text-neutral-500 leading-tight">
                             {item.name}
                           </p>
                           <p className="font-medium">{item.value}</p>

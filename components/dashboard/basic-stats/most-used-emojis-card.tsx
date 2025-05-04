@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 const BarChart = dynamic(() => import("@/components/charts/bar-chart"), {
   ssr: false,
   loading: () => (
-    <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
+    <div className="h-64 w-full bg-neutral-100 animate-pulse rounded-md"></div>
   ),
 });
 
@@ -23,7 +23,7 @@ export function MostUsedEmojisCard({ stats }: MostUsedEmojisCardProps) {
       <CardContent className="flex-1">
         <Suspense
           fallback={
-            <div className="w-full h-full bg-gray-100 animate-pulse rounded-md"></div>
+            <div className="w-full h-full bg-neutral-100 animate-pulse rounded-md"></div>
           }
         >
           <BarChart

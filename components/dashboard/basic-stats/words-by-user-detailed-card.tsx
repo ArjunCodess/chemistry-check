@@ -50,7 +50,7 @@ export function WordsByUserDetailedCard({ stats }: WordsByUserDetailedCardProps)
                       </span>
                       <span className="font-semibold">{item.count} times</span>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-3">
+                    <div className="w-full bg-neutral-100 rounded-full h-3">
                       <div
                         className={`${barColor} h-3 rounded-full`}
                         style={{

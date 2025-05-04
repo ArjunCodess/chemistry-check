@@ -33,10 +33,10 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-4xl md:px-4 md:py-12">
-      <div className="md:rounded-lg border border-gray-200 bg-white p-8 shadow-md">
+      <div className="md:rounded-lg border border-neutral-200 bg-white p-8 shadow-md">
         <div className="flex flex-col items-center space-y-4 text-center sm:flex-row sm:space-x-8 sm:space-y-0 sm:text-left">
           <div className="relative h-24 w-24">
-            <div className="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+            <div className="h-24 w-24 rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden">
               {user.image ? (
                 <Image
                   src={user.image}
@@ -46,11 +46,11 @@ export default function ProfilePage() {
                   className="object-cover"
                 />
               ) : user.name ? (
-                <span className="text-3xl font-bold text-gray-600">
+                <span className="text-3xl font-bold text-neutral-600">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
               ) : (
-                <span className="text-3xl font-bold text-gray-600">?</span>
+                <span className="text-3xl font-bold text-neutral-600">?</span>
               )}
             </div>
             {user.emailVerified && (
@@ -73,43 +73,43 @@ export default function ProfilePage() {
           </div>
           <div className="flex-1">
             <h1 className="text-2xl font-bold">{user.name || "User"}</h1>
-            <p className="text-gray-600">{user.email}</p>
+            <p className="text-neutral-600">{user.email}</p>
           </div>
           <SignOutButton className="mt-auto w-full md:w-fit" />
         </div>
 
-        <div className="mt-8 border-t border-gray-200 pt-8">
+        <div className="mt-8 border-t border-neutral-200 pt-8">
           <h2 className="mb-4 text-xl font-semibold">Account Information</h2>
           <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
             <div>
-              <dt className="text-sm font-medium text-gray-500">Email</dt>
-              <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
+              <dt className="text-sm font-medium text-neutral-500">Email</dt>
+              <dd className="mt-1 text-sm text-neutral-900">{user.email}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Name</dt>
-              <dd className="mt-1 text-sm text-gray-900">
+              <dt className="text-sm font-medium text-neutral-500">Name</dt>
+              <dd className="mt-1 text-sm text-neutral-900">
                 {user.name || "Not provided"}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">Account ID</dt>
-              <dd className="mt-1 text-sm text-gray-900">{user.id}</dd>
+              <dt className="text-sm font-medium text-neutral-500">Account ID</dt>
+              <dd className="mt-1 text-sm text-neutral-900">{user.id}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">
+              <dt className="text-sm font-medium text-neutral-500">
                 Account Created
               </dt>
-              <dd className="mt-1 text-sm text-gray-900">
+              <dd className="mt-1 text-sm text-neutral-900">
                 {user.createdAt
                   ? new Date(user.createdAt).toLocaleDateString()
                   : "Unknown"}
               </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-gray-500">
+              <dt className="text-sm font-medium text-neutral-500">
                 Authentication Provider
               </dt>
-              <dd className="mt-1 text-sm text-gray-900">
+              <dd className="mt-1 text-sm text-neutral-900">
                 {isGoogleAccount ? (
                   <span className="inline-flex items-center">
                     <svg
@@ -139,7 +139,7 @@ export default function ProfilePage() {
 
         <Link
           href="/dashboard"
-          className="mt-8 border-t border-gray-200 pt-8 flex items-center justify-between"
+          className="mt-8 border-t border-neutral-200 pt-8 flex items-center justify-between"
         >
           <Button className="w-full">
             View Your Analysis History <ArrowRight />

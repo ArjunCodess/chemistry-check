@@ -26,7 +26,7 @@ export function ResponseStatsCard({ stats }: ResponseStatsCardProps) {
             )
           )}
           {Object.keys(stats.responseTimes || {}).length === 0 && (
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-neutral-500">
               No response time data available
             </div>
           )}

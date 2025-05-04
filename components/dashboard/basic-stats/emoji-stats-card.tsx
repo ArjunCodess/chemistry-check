@@ -30,7 +30,7 @@ export function EmojiStatsCard({ stats }: EmojiStatsCardProps) {
               ))}
           {(!Array.isArray(stats?.mostUsedEmojis) ||
             stats.mostUsedEmojis.length === 0) && (
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-neutral-500">
               No emoji data available
             </div>
           )}

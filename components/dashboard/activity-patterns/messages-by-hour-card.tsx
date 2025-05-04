@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 const BarChart = dynamic(() => import("@/components/charts/bar-chart"), {
   ssr: false,
   loading: () => (
-    <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
+    <div className="h-64 w-full bg-neutral-100 animate-pulse rounded-md"></div>
   ),
 });
 
@@ -52,7 +52,7 @@ export function MessagesByHourCard({ stats }: MessagesByHourCardProps) {
                 barColor="hsl(var(--chart-1))"
               />
             </div>
-            <div className="mt-4 text-xs text-gray-500">
+            <div className="mt-4 text-xs text-neutral-500">
               <div className="flex items-center gap-2">
                 * Peak hours reveal when both parties are typically available to chat
               </div>
@@ -63,7 +63,7 @@ export function MessagesByHourCard({ stats }: MessagesByHourCardProps) {
             <h3 className="text-lg font-medium mb-2">
               No hourly data available
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-neutral-500">
               Hourly message distribution data isn&apos;t available in this chat export.
             </p>
           </div>

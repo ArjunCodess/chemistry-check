@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   const { data: session } = authClient.useSession();
@@ -30,17 +31,28 @@ export default function Home() {
   const isAuthenticated = !!session;
 
   return (
-    <main className="min-h-[calc(100vh-70px)] bg-gradient-to-b from-gray-100 to-white px-4 sm:p-6 md:p-8">
+    <main className="min-h-[calc(100vh-70px)] bg-gradient-to-b from-neutral-100 to-white px-4 sm:p-6 md:p-8">
       <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl mx-auto">
-        <Card className="bg-white/80 backdrop-blur-sm border-gray-200 shadow-sm">
-          <CardHeader className="space-y-1 sm:space-y-2 px-4 sm:px-6">
-            <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
-              TeXtRay
-            </CardTitle>
-            <CardDescription className="text-sm sm:text-base text-gray-600">
-              Upload your chat history to analyze communication patterns and get
-              insights
-            </CardDescription>
+        <Card className="bg-white/80 backdrop-blur-sm border-neutral-200 shadow-sm">
+          <CardHeader className="flex items-center justify-between px-4 sm:px-6">
+            <div className="flex-1 pr-8">
+              <CardTitle className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">
+                ChemistryCheck
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base text-neutral-600 leading-relaxed">
+                Upload your chat history to analyze communication patterns and
+                get insights
+              </CardDescription>
+            </div>
+            <div className="flex items-center justify-end my-auto">
+              <Image
+                src="/logo.png"
+                alt="ChemistryCheck"
+                width={120}
+                height={120}
+                className="object-contain"
+              />
+            </div>
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             {isAuthenticated ? (

@@ -16,7 +16,7 @@ export default function SignInPage() {
   const handleSubmit = async (formData: FormData) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const result: AuthResult = await signIn(formData);
       if (!result.success && result.error) {
@@ -34,7 +34,7 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await authClient.signIn.social({
         provider: "google",
@@ -49,11 +49,11 @@ export default function SignInPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-120px)] flex-col items-center justify-center p-4 py-6 sm:py-12">
-      <div className="w-full max-w-[340px] sm:max-w-md space-y-6 sm:space-y-8 rounded-lg border border-gray-200 bg-white p-4 sm:p-8 shadow-md">
+      <div className="w-full max-w-[340px] sm:max-w-md space-y-6 sm:space-y-8 rounded-lg border border-neutral-200 bg-white p-4 sm:p-8 shadow-md">
         <div className="text-center">
           <h1 className="text-xl sm:text-2xl font-bold">Sign In</h1>
-          <p className="mt-2 text-xs sm:text-sm text-gray-600">
-            Sign in to access your TeXtRay account
+          <p className="mt-2 text-xs sm:text-sm text-neutral-600">
+            Sign in to access your ChemistryCheck account
           </p>
         </div>
 
@@ -65,10 +65,15 @@ export default function SignInPage() {
           </div>
         )}
 
-        <form action={handleSubmit} className="mt-4 sm:mt-8 space-y-4 sm:space-y-6">
+        <form
+          action={handleSubmit}
+          className="mt-4 sm:mt-8 space-y-4 sm:space-y-6"
+        >
           <div className="space-y-3 sm:space-y-4">
             <div>
-              <Label htmlFor="email" className="text-sm sm:text-base">Email address</Label>
+              <Label htmlFor="email" className="text-sm sm:text-base">
+                Email address
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -81,7 +86,9 @@ export default function SignInPage() {
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-sm sm:text-base">Password</Label>
+              <Label htmlFor="password" className="text-sm sm:text-base">
+                Password
+              </Label>
               <Input
                 id="password"
                 name="password"
@@ -95,8 +102,8 @@ export default function SignInPage() {
           </div>
 
           <div>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="w-full text-sm sm:text-base py-2 h-auto sm:h-10"
               disabled={isLoading}
             >
@@ -107,10 +114,12 @@ export default function SignInPage() {
 
         <div className="relative my-3 sm:my-4">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t border-neutral-300"></div>
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-white px-2 text-xs sm:text-sm text-gray-500">Or continue with</span>
+            <span className="bg-white px-2 text-xs sm:text-sm text-neutral-500">
+              Or continue with
+            </span>
           </div>
         </div>
 
@@ -140,9 +149,12 @@ export default function SignInPage() {
         </Button>
 
         <div className="text-center">
-          <p className="text-xs sm:text-sm text-gray-600">
+          <p className="text-xs sm:text-sm text-neutral-600">
             Don&apos;t have an account?{" "}
-            <Link href="/sign-up" className="font-medium text-blue-600 hover:underline">
+            <Link
+              href="/sign-up"
+              className="font-medium text-blue-600 hover:underline"
+            >
               Sign up
             </Link>
           </p>
@@ -150,4 +162,4 @@ export default function SignInPage() {
       </div>
     </div>
   );
-} 
+}

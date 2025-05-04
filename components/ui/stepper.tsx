@@ -729,9 +729,9 @@ function StepButtonContainer({
         "pointer-events-none rounded-full p-0",
         "size-[var(--step-icon-size)]",
         "flex items-center justify-center rounded-full border-2",
-        "border-gray-300",
+        "border-neutral-300",
         "bg-transparent",
-        "text-gray-600",
+        "text-neutral-600",
         styles?.["step-button-container"]
       )}
       aria-current={false}

@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 const BarChart = dynamic(() => import("@/components/charts/bar-chart"), {
   ssr: false,
   loading: () => (
-    <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
+    <div className="h-64 w-full bg-neutral-100 animate-pulse rounded-md"></div>
   ),
 });
 
@@ -44,7 +44,7 @@ export function MessagesByDayCard({ stats }: MessagesByDayCardProps) {
                 barColor="hsl(var(--chart-2))"
               />
             </div>
-            <div className="mt-4 text-xs text-gray-500">
+            <div className="mt-4 text-xs text-neutral-500">
               <div className="flex items-center gap-2">
                 * Weekend patterns often differ from weekday communication styles
               </div>
@@ -55,7 +55,7 @@ export function MessagesByDayCard({ stats }: MessagesByDayCardProps) {
             <h3 className="text-lg font-medium mb-2">
               No daily data available
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-neutral-500">
               Day of week message distribution data isn&apos;t available in this chat export.
             </p>
           </div>

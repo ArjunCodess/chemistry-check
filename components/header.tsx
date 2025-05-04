@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LayoutDashboard, LogOut, User } from "lucide-react";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 export default function Header() {
   const { data: session, isPending } = authClient.useSession();
@@ -23,40 +24,38 @@ export default function Header() {
 
   if (!mounted) {
     return (
-      <header className="w-full border-b border-gray-200 bg-white">
+      <header className="w-full border-b border-neutral-200 bg-white">
         <div className="container mx-auto px-4 flex h-16 items-center justify-between">
           <Link href="/" className="font-bold text-xl">
-            TeXtRay
+            ChemistryCheck
           </Link>
-          <div className="h-8 w-8 rounded-full bg-gray-200"></div>
+          <div className="h-8 w-8 rounded-full bg-neutral-200"></div>
         </div>
       </header>
     );
   }
 
   return (
-    <header className="w-full border-b border-gray-200 bg-white">
+    <header className="w-full border-b border-neutral-200 bg-white">
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
-        <Link href="/" className="font-bold text-xl">
-          TeXtRay
+        <Link href="/" className="font-bold text-xl flex items-center gap-2">
+          <Image src="/logo.png" alt="ChemistryCheck" width={50} height={50} />
+          ChemistryCheck
         </Link>
 
         {isPending ? (
-          <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+          <div className="h-8 w-8 rounded-full bg-neutral-200 animate-pulse"></div>
         ) : session ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative h-8 w-8 rounded-full"
-              >
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8 rounded-full">
                   <AvatarImage
                     src={session.user.image || ""}
                     alt={session.user.name || "User"}
                     className="h-8 w-8 rounded-full"
                   />
-                  <AvatarFallback className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-800">
+                  <AvatarFallback className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-100 text-neutral-800">
                     {session.user.name?.[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>

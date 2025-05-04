@@ -36,7 +36,7 @@ interface MediaOverviewProps {
 const PieChart = dynamic(() => import("@/components/charts/pie-chart"), {
   ssr: false,
   loading: () => (
-    <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
+    <div className="h-64 w-full bg-neutral-100 animate-pulse rounded-md"></div>
   ),
 });
 
@@ -84,7 +84,7 @@ export function MediaOverview({ stats }: MediaOverviewProps) {
         <div className="flex flex-col items-center">
           {/* Top Stats Row - Basic View */}
           <div className="mb-6 flex flex-row gap-4 justify-between w-full">
-            <div className={`bg-gray-50 p-4 rounded-lg ${isTelegram ? 'w-1/2' : 'w-full'}`}>
+            <div className={`bg-neutral-50 p-4 rounded-lg ${isTelegram ? 'w-1/2' : 'w-full'}`}>
               <h3 className="text-sm text-muted-foreground">Total Media</h3>
               <p className="text-2xl font-bold">
                 {stats.mediaStats?.total || 0}
@@ -92,8 +92,8 @@ export function MediaOverview({ stats }: MediaOverviewProps) {
             </div>
 
             {isTelegram && (
-              <div className="bg-gray-50 p-4 rounded-lg w-1/2">
-                <p className="text-sm text-gray-500">Total Size</p>
+              <div className="bg-neutral-50 p-4 rounded-lg w-1/2">
+                <p className="text-sm text-neutral-500">Total Size</p>
                 <p className="text-xl font-semibold">
                   {formatFileSize(stats?.mediaStats?.totalSize ?? 0)}
                 </p>
@@ -138,7 +138,7 @@ export function MediaOverview({ stats }: MediaOverviewProps) {
 
           <Suspense
             fallback={
-              <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
+              <div className="h-64 w-full bg-neutral-100 animate-pulse rounded-md"></div>
             }
           >
             <PieChart data={mediaData} />

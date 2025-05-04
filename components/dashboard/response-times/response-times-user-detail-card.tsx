@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 const BarChart = dynamic(() => import("@/components/charts/bar-chart"), {
   ssr: false,
   loading: () => (
-    <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
+    <div className="h-64 w-full bg-neutral-100 animate-pulse rounded-md"></div>
   ),
 });
 
@@ -89,7 +89,7 @@ export function ResponseTimesUserDetailCard({
 
           <Suspense
             fallback={
-              <div className="h-64 w-full bg-gray-100 animate-pulse rounded-md"></div>
+              <div className="h-64 w-full bg-neutral-100 animate-pulse rounded-md"></div>
             }
           >
             <BarChart

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import Header from "@/components/header";
@@ -9,12 +9,12 @@ import Script from "next/script";
 
 config({ path: ".env" });
 
-const inter = Inter({ subsets: ["latin"] });
+const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "TeXtRay - Chat Analysis & Insights",
+  title: "ChemistryCheck - Chat Analysis & Insights",
   description: "AI-powered chat analysis tool for messaging platforms",
-  applicationName: "TeXtRay",
+  applicationName: "ChemistryCheck",
   authors: [{ name: "Arjun Vijay Prakash" }],
   generator: "Next.js",
   keywords: [
@@ -30,26 +30,26 @@ export const metadata: Metadata = {
   publisher: "Arjun Vijay Prakash",
   metadataBase: new URL(process.env.APP_URL!),
   openGraph: {
-    title: "TeXtRay - Chat Analysis & Insights",
+    title: "ChemistryCheck - Chat Analysis & Insights",
     description: "AI-powered chat analysis tool for messaging platforms",
     type: "website",
-    siteName: "TeXtRay",
+    siteName: "ChemistryCheck",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 600,
-        alt: "TeXtRay - Chat Analysis & Insights",
+        alt: "ChemistryCheck - Chat Analysis & Insights",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TeXtRay - Chat Analysis & Insights",
+    title: "ChemistryCheck - Chat Analysis & Insights",
     description: "AI-powered chat analysis tool for messaging platforms",
     images: ["/og-image.png"],
   },
-  icons: "/logo.svg",
+  icons: "/logo.png",
 };
 
 export default function RootLayout({
@@ -59,7 +59,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={geist.className}>
         <Header />
         {children}
         <Toaster />
@@ -67,7 +67,7 @@ export default function RootLayout({
       </body>
       <Script
         defer
-        data-domain="textray.vercel.app"
+        data-domain="chemistrycheck.vercel.app"
         src="https://getanalyzr.vercel.app/tracking-script.js"
       />
     </html>

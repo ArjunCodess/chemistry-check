@@ -109,7 +109,7 @@ export function ChatAnalyzerForm() {
       <Button
         type="submit"
         disabled={!file || !platform || isLoading || !session}
-        className="w-full py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base transition-colors"
+        className="w-full py-2 sm:py-3 text-sm sm:text-base transition-colors"
       >
         {isLoading ? "Analyzing..." : "Analyze Chat"}
       </Button>

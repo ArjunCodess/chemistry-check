@@ -20,7 +20,7 @@ export function MostUsedWordsCard({ stats }: MostUsedWordsCardProps) {
                   <span className="text-sm font-medium">&ldquo;{word}&rdquo;</span>
                   <span className="font-semibold">{count} times</span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-3">
+                <div className="w-full bg-neutral-100 rounded-full h-3">
                   <div
                     className="bg-purple-500 h-3 rounded-full"
                     style={{
@@ -36,7 +36,7 @@ export function MostUsedWordsCard({ stats }: MostUsedWordsCardProps) {
             ))}
           </div>
         ) : (
-          <div className="h-64 w-full flex items-center justify-center text-gray-500">
+          <div className="h-64 w-full flex items-center justify-center text-neutral-500">
             No word data available
           </div>
         )}

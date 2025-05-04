@@ -19,7 +19,7 @@ export function MessagesByUserCard({ stats }: MessagesByUserCardProps) {
                 <span className="text-sm font-medium">{user}:</span>
                 <span className="font-semibold">{count} messages</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-4">
+              <div className="w-full bg-neutral-100 rounded-full h-4">
                 <div
                   className="bg-blue-500 h-4 rounded-full"
                   style={{

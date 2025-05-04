@@ -27,10 +27,10 @@ export function EmojisByUserCard({ stats }: EmojisByUserCardProps) {
                     .map(([emoji, count]) => (
                       <div
                         key={emoji}
-                        className="flex flex-col items-center p-2 bg-gray-50 rounded-lg"
+                        className="flex flex-col items-center p-2 bg-neutral-50 rounded-lg"
                       >
                         <span className="text-2xl">{emoji}</span>
-                        <span className="text-xs text-gray-500">{count}</span>
+                        <span className="text-xs text-neutral-500">{count}</span>
                       </div>
                     ))}
                 </div>

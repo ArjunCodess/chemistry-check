@@ -37,10 +37,10 @@ import { authClient } from "@/lib/auth-client";
 
 const TabLoadingFallback = () => (
   <div className="animate-pulse space-y-4">
-    <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-    <div className="h-64 bg-gray-200 rounded"></div>
-    <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-    <div className="h-32 bg-gray-200 rounded"></div>
+    <div className="h-8 bg-neutral-200 rounded w-1/3"></div>
+    <div className="h-64 bg-neutral-200 rounded"></div>
+    <div className="h-8 bg-neutral-200 rounded w-1/4"></div>
+    <div className="h-32 bg-neutral-200 rounded"></div>
   </div>
 );
 
@@ -200,7 +200,7 @@ export default function AnalysisDashboard() {
               />
               <button
                 onClick={handleUpdateName}
-                className="p-1 rounded-full hover:bg-gray-100"
+                className="p-1 rounded-full hover:bg-neutral-100"
                 aria-label="Save name"
               >
                 <Check className="h-5 w-5 text-green-500" />
@@ -210,7 +210,7 @@ export default function AnalysisDashboard() {
                   setEditedName(analysisDetails?.name || "Untitled Analysis");
                   setIsEditingName(false);
                 }}
-                className="p-1 rounded-full hover:bg-gray-100"
+                className="p-1 rounded-full hover:bg-neutral-100"
                 aria-label="Cancel editing"
               >
                 <X className="h-5 w-5 text-red-500" />
@@ -223,21 +223,21 @@ export default function AnalysisDashboard() {
               </h1>
               <button
                 onClick={() => setIsEditingName(true)}
-                className="p-1 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+                className="p-1 rounded-full hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary"
                 aria-label="Edit analysis name"
               >
-                <Edit2 className="h-4 w-4 text-gray-500" />
+                <Edit2 className="h-4 w-4 text-neutral-500" />
               </button>
             </div>
           )}
           {analysisDetails?.createdAt && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-neutral-500 mt-1">
               Analysis from{" "}
               {new Date(analysisDetails.createdAt).toLocaleString()}
             </p>
           )}
           {analysisDetails?.platform && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-neutral-500">
               Platform:{" "}
               {analysisDetails.platform.charAt(0).toUpperCase() +
                 analysisDetails.platform.slice(1)}

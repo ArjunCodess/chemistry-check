@@ -63,17 +63,17 @@ export function LongestMessagesCard({
                       return (
                         <div
                           key={index}
-                          className="bg-gray-50 p-3 rounded-lg"
+                          className="bg-neutral-50 p-3 rounded-lg"
                         >
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-neutral-500">
                               {message.date || "Unknown date"}
                             </span>
                             <span className="text-xs font-semibold bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                               {message.length} words
                             </span>
                           </div>
-                          <p className="text-sm text-gray-700 whitespace-pre-wrap break-words">
+                          <p className="text-sm text-neutral-700 whitespace-pre-wrap break-words">
                             &ldquo;{displayText}&rdquo;
                           </p>
                           {messageText.length > 100 && toggleMessageExpand && (
@@ -95,7 +95,7 @@ export function LongestMessagesCard({
             }
           )}
           {Object.keys(longestMessages).length === 0 && (
-            <div className="text-sm text-gray-500 text-center py-4">
+            <div className="text-sm text-neutral-500 text-center py-4">
               No message data available
             </div>
           )}
