@@ -5,7 +5,12 @@ import { redirect, useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { ArrowLeft, Menu, Edit2, Check, X } from "lucide-react";
 import { createSafeStats } from "@/lib/chat-stats";
 import { ChatStats } from "@/types";
@@ -28,6 +33,7 @@ import { Media } from "@/components/dashboard/media";
 import { EmojiAnalysis } from "@/components/dashboard/emoji-analysis";
 import { PhraseAnalysis } from "@/components/dashboard/phrase-analysis";
 import { AIInsights } from "@/components/dashboard/ai-insights";
+import { TLDR } from "@/components/dashboard/tldr";
 import { authClient } from "@/lib/auth-client";
 
 const TabLoadingFallback = () => (
@@ -53,7 +59,7 @@ export default function AnalysisDashboard() {
   const [expandedMessages, setExpandedMessages] = useState<
     Record<string, Record<number, boolean>>
   >({});
-  const [activeTab, setActiveTab] = useState("basic");
+  const [activeTab, setActiveTab] = useState("tldr");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -239,13 +245,19 @@ export default function AnalysisDashboard() {
             </p>
           )}
         </div>
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 mb-auto md:space-x-2">
-          <Button variant="outline" onClick={() => router.back()}>
+        <div className="flex flex-row w-full md:w-fit space-x-2 mt-2">
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            className="w-1/2 md:w-fit"
+          >
             <ArrowLeft className="h-4 w-4" /> Back
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive">Delete Analysis</Button>
+              <Button variant="destructive" className="w-1/2 md:w-fit">
+                Delete Analysis
+              </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
@@ -292,12 +304,13 @@ export default function AnalysisDashboard() {
       {/* Desktop Tabs */}
       <div className="hidden md:block">
         <Tabs
-          defaultValue="basic"
+          defaultValue="tldr"
           className="w-full"
           value={activeTab}
           onValueChange={setActiveTab}
         >
           <TabsList className="mb-6 w-full overflow-x-auto">
+            <TabsTrigger value="tldr">TL;DR</TabsTrigger>
             <TabsTrigger value="basic">Basic Stats</TabsTrigger>
             <TabsTrigger value="time">Response Times</TabsTrigger>
             <TabsTrigger value="activity">Activity Patterns</TabsTrigger>
@@ -307,7 +320,13 @@ export default function AnalysisDashboard() {
             <TabsTrigger value="ai">AI Insights</TabsTrigger>
           </TabsList>
 
-          <div className="px-1 overflow-hidden">
+          <div className="px-1 overflow-hidden h-full">
+            <TabsContent value="tldr" className="mt-0 overflow-x-auto h-full">
+              <Suspense fallback={<TabLoadingFallback />}>
+                <TLDR stats={safeStats} />
+              </Suspense>
+            </TabsContent>
+
             <TabsContent value="basic" className="mt-0 overflow-x-auto">
               <Suspense fallback={<TabLoadingFallback />}>
                 <BasicStats
@@ -369,7 +388,9 @@ export default function AnalysisDashboard() {
               className="w-full flex justify-between items-center"
             >
               <span>
-                {activeTab === "basic"
+                {activeTab === "tldr"
+                  ? "TLDR"
+                  : activeTab === "basic"
                   ? "Basic Stats"
                   : activeTab === "time"
                   ? "Response Times"
@@ -386,8 +407,19 @@ export default function AnalysisDashboard() {
               <Menu className="h-4 w-4" />
             </Button>
           </DrawerTrigger>
-          <DrawerContent className="h-[32rem] px-4">
-            <div className="grid grid-cols-1 gap-4 pt-14">
+          <DrawerContent className="h-[35rem] px-4">
+            <DrawerTitle />
+            <div className="grid grid-cols-1 gap-4 pt-8">
+              <Button
+                variant={activeTab === "tldr" ? "default" : "ghost"}
+                onClick={() => {
+                  setActiveTab("tldr");
+                  setDrawerOpen(false);
+                }}
+                className="justify-start"
+              >
+                TLDR
+              </Button>
               <Button
                 variant={activeTab === "basic" ? "default" : "ghost"}
                 onClick={() => {
@@ -465,6 +497,13 @@ export default function AnalysisDashboard() {
 
       {/* Mobile Tabs Content */}
       <div className="md:hidden overflow-hidden">
+        {activeTab === "tldr" && (
+          <Suspense fallback={<TabLoadingFallback />}>
+            <div className="overflow-x-auto h-full">
+              <TLDR stats={safeStats} />
+            </div>
+          </Suspense>
+        )}
         {activeTab === "basic" && (
           <Suspense fallback={<TabLoadingFallback />}>
             <div className="overflow-x-auto">

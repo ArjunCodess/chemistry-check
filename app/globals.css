@@ -194,3 +194,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+.masonry-grid {
+  display: flex;
+  width: auto;
+  margin-left: -16px;
+  height: 100%;
+}
+
+.masonry-grid-column {
+  padding-left: 16px;
+  background-clip: padding-box;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.masonry-item {
+  margin-bottom: 16px;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.masonry-item > div {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
