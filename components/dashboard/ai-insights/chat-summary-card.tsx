@@ -1,19 +1,38 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChatStats } from "@/types";
+import { useState } from "react";
 
 interface ChatSummaryCardProps {
   stats: ChatStats;
   onUploadNewChat: () => void;
 }
 
-export function ChatSummaryCard({ stats, onUploadNewChat }: ChatSummaryCardProps) {
+export function ChatSummaryCard({
+  stats,
+  onUploadNewChat,
+}: ChatSummaryCardProps) {
+  const [showFullSummary, setShowFullSummary] = useState(false);
+
+  const truncateSummary = (text: string) => {
+    const words = text.split(" ");
+    if (words.length <= 100) return text;
+    return words.slice(0, 100).join(" ") + "...";
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>AI-Generated Chat Summary</CardTitle>
         <CardDescription>
-          A TL;DR of what your chat is really about, including key patterns and dynamics.
+          A TL;DR of what your chat is really about, including key patterns and
+          dynamics.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -33,7 +52,8 @@ export function ChatSummaryCard({ stats, onUploadNewChat }: ChatSummaryCardProps
                 </p>
                 <style jsx>{`
                   @keyframes cookedTextPulse {
-                    0%, 100% {
+                    0%,
+                    100% {
                       transform: scale(1);
                     }
                     50% {
@@ -45,7 +65,18 @@ export function ChatSummaryCard({ stats, onUploadNewChat }: ChatSummaryCardProps
             )}
             <div className="p-4 bg-slate-50 rounded-lg antialiased">
               <p className="whitespace-pre-line text-xs md:text-sm">
-                {stats.aiSummary}
+                {showFullSummary
+                  ? stats.aiSummary
+                  : truncateSummary(stats.aiSummary)}
+                {stats.aiSummary.split(" ").length > 100 && (
+                  <Button
+                    variant="link"
+                    onClick={() => setShowFullSummary(!showFullSummary)}
+                    className="text-blue-700 hover:text-blue-800"
+                  >
+                    {showFullSummary ? "Show Less" : "Show More"}
+                  </Button>
+                )}
               </p>
             </div>
           </div>
@@ -72,7 +103,8 @@ export function ChatSummaryCard({ stats, onUploadNewChat }: ChatSummaryCardProps
               AI Summary Not Available
             </h3>
             <p className="text-slate-500 text-sm max-w-md">
-              Upload your chat history to generate an AI-powered summary of your conversation dynamics.
+              Upload your chat history to generate an AI-powered summary of your
+              conversation dynamics.
             </p>
             <Button className="mt-4" onClick={onUploadNewChat}>
               Upload Chat
@@ -82,4 +114,4 @@ export function ChatSummaryCard({ stats, onUploadNewChat }: ChatSummaryCardProps
       </CardContent>
     </Card>
   );
-} 
+}

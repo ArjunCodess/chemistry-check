@@ -80,7 +80,7 @@ export function LongestMessagesCard({
                             <Button
                               variant="link"
                               size="sm"
-                              className="mt-2 h-auto p-0"
+                              className="mt-2 h-auto p-0 text-blue-700 hover:text-blue-800"
                               onClick={() => toggleMessageExpand(user, index)}
                             >
                               {isExpanded ? "Show Less" : "Read More"}
