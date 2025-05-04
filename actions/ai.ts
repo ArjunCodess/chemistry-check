@@ -29,8 +29,6 @@ export async function generateAIInsights(stats: ChatStats, sampleMessages: Array
       mostUsedWords: stats.mostUsedWords?.slice(0, 10),
       mostUsedEmojis: stats.mostUsedEmojis?.slice(0, 10),
       responseTimes: stats.responseTimes,
-      commonPhrases: stats.commonPhrases?.slice(0, 10),
-      overusedPhrases: stats.overusedPhrases,
       biggestGaps: stats.biggestGaps?.slice(0, 5),
       longestMessages: stats.longestMessages,
       messagesByHour: stats.messagesByHour,

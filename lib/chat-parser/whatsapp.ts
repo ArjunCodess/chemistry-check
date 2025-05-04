@@ -33,8 +33,6 @@ export async function parseChatData(rawText: string): Promise<ChatStats> {
       total: 0,
       byUser: {}
     },
-    commonPhrases: [],
-    overusedPhrases: {},
     gapTrends: [],
     gapAnalysis: {},
     biggestGaps: [],
@@ -278,9 +276,6 @@ export async function parseChatData(rawText: string): Promise<ChatStats> {
     
     // Calculate response statistics and gap analysis
     calculateResponsesAndGaps(userMessages, stats);
-    
-    // Analyze phrases for common and overused expressions
-    analyzePhrases(userMessages, stats);
     
     console.log("WhatsApp chat parsing completed with:", {
       totalMessages: stats.totalMessages,
@@ -815,191 +810,6 @@ function calculateResponsesAndGaps(messages: WhatsAppMessage[], stats: ChatStats
   }
 }
 
-// Helper function to analyze phrases
-function analyzePhrases(messages: WhatsAppMessage[], stats: ChatStats): void {
-  // Minimum phrase length to consider (in words)
-  const MIN_PHRASE_LENGTH = 2;
-  // Maximum phrase length to analyze
-  const MAX_PHRASE_LENGTH = 5;
-  // Minimum occurrences to be considered common
-  const MIN_OCCURRENCES = 3;
-  // Minimum occurrences for user-specific phrases to be considered overused
-  const MIN_USER_OCCURRENCES = 3;
-
-  // Initialize phrase counters
-  const phraseCounts: Record<string, number> = {};
-  const userPhraseCounts: Record<string, Record<string, number>> = {};
-  
-  // Get list of users
-  const users = Object.keys(stats.messagesByUser);
-  
-  // Initialize user phrase counts
-  users.forEach(user => {
-    userPhraseCounts[user] = {};
-  });
-
-  // Process each message with text content
-  messages.forEach(message => {
-    if (!message || !message.sender || !message.content) return;
-    
-    const user = message.sender;
-    if (!userPhraseCounts[user]) return; // Skip if user not in our tracking list
-    
-    const text = message.content;
-    if (!text || text.trim().length === 0) return;
-    
-    // Filter out special WhatsApp messages
-    if (
-      text === "This message was deleted" || 
-      text === "You deleted this message" ||
-      text.includes("<This message was edited>") ||
-      text === "<Media omitted>" ||
-      text.includes("Media omitted")
-    ) {
-      return; // Skip these special message types
-    }
-    
-    // Normalize text: lowercase and remove extra whitespace
-    const normalizedText = text.toLowerCase().replace(/\s+/g, ' ').trim();
-    
-    // Skip phrases that contain links for phrase analysis
-    if (normalizedText.includes("http://") || normalizedText.includes("https://")) {
-      return;
-    }
-    
-    // Split into words
-    const words = normalizedText.split(' ');
-    
-    // Skip if too few words
-    if (words.length < MIN_PHRASE_LENGTH) return;
-    
-    // Extract phrases of different lengths
-    for (let phraseLength = MIN_PHRASE_LENGTH; phraseLength <= MAX_PHRASE_LENGTH; phraseLength++) {
-      // Skip if message is shorter than current phrase length
-      if (words.length < phraseLength) continue;
-      
-      // Extract all possible phrases of current length
-      for (let i = 0; i <= words.length - phraseLength; i++) {
-        const phrase = words.slice(i, i + phraseLength).join(' ');
-        
-        // Skip extremely short phrases or phrases containing just special characters/numbers
-        if (phrase.length < 4 || /^[\d\s.,!?;:'"()\[\]{}]+$/.test(phrase)) continue;
-        
-        // Update global phrase count
-        phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
-        
-        // Update user-specific phrase count
-        userPhraseCounts[user][phrase] = (userPhraseCounts[user][phrase] || 0) + 1;
-      }
-    }
-  });
-
-  // Filter out subset phrases with identical counts
-  const filteredPhraseCounts = filterSubsetPhrases(phraseCounts);
-  
-  // Extract common phrases (used by anyone)
-  const commonPhrases = Object.entries(filteredPhraseCounts)
-    .filter(([, count]) => count >= MIN_OCCURRENCES)
-    .map(([text, count]) => ({ text, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 20); // Top 20 common phrases
-
-  // Extract overused phrases per user
-  const overusedPhrases: Record<string, Array<{ text: string; count: number }>> = {};
-  
-  users.forEach(user => {
-    // Filter subset phrases for this user
-    const filteredUserPhrases = filterSubsetPhrases(userPhraseCounts[user]);
-    
-    // Get all phrases used by this user with minimum occurrences
-    const userPhrases = Object.entries(filteredUserPhrases)
-      .filter(([, count]) => count >= MIN_USER_OCCURRENCES)
-      .map(([text, count]) => ({ text, count }))
-      .sort((a, b) => b.count - a.count);
-    
-    // Only keep phrases that are significantly used by this user
-    const significantPhrases = userPhrases.filter(({ text, count }) => {
-      const totalUsage = filteredPhraseCounts[text] || count;
-      const userPercentage = count / totalUsage;
-      
-      // If user accounts for 70%+ of the phrase usage and used it at least MIN_USER_OCCURRENCES times
-      return userPercentage >= 0.7 && count >= MIN_USER_OCCURRENCES;
-    });
-    
-    if (significantPhrases.length > 0) {
-      overusedPhrases[user] = significantPhrases.slice(0, 10); // Top 10 overused phrases per user
-    }
-  });
-
-  // Store results in stats
-  stats.commonPhrases = commonPhrases;
-  stats.overusedPhrases = overusedPhrases;
-}
-
-/**
- * Filters out subset phrases that have the same occurrence count as their containing phrases
- * For example, if "night" and "good night" both have 10 occurrences, we only keep "good night"
- */
-function filterSubsetPhrases(phraseCounts: Record<string, number>): Record<string, number> {
-  const result: Record<string, number> = {};
-  
-  // Group phrases by count to find potential subsets
-  const phrasesByCount: Record<number, string[]> = {};
-  
-  // Sort phrases by length (longest first) so we process longer phrases before shorter ones
-  const phrases = Object.keys(phraseCounts).sort((a, b) => b.length - a.length);
-  
-  for (const phrase of phrases) {
-    const count = phraseCounts[phrase];
-    if (!phrasesByCount[count]) {
-      phrasesByCount[count] = [];
-    }
-    phrasesByCount[count].push(phrase);
-  }
-  
-  // Filter subsets within each count group
-  Object.entries(phrasesByCount).forEach(([countStr, phrasesWithCount]) => {
-    const count = parseInt(countStr);
-    
-    // If only one phrase has this count, add it directly
-    if (phrasesWithCount.length === 1) {
-      result[phrasesWithCount[0]] = count;
-      return;
-    }
-    
-    // Sort phrases by length (longest first)
-    const sortedPhrases = phrasesWithCount.sort((a, b) => b.length - a.length);
-    
-    // Track which phrases to include
-    const includePhrases = new Set(sortedPhrases);
-    
-    // Check for subset relationships
-    for (let i = 0; i < sortedPhrases.length; i++) {
-      const phrase = sortedPhrases[i];
-      if (!includePhrases.has(phrase)) continue;
-      
-      for (let j = i + 1; j < sortedPhrases.length; j++) {
-        const potentialSubset = sortedPhrases[j];
-        
-        // Skip if already marked for exclusion
-        if (!includePhrases.has(potentialSubset)) continue;
-        
-        // If the longer phrase includes the shorter phrase, mark the shorter phrase for exclusion
-        if (phrase.includes(potentialSubset)) {
-          includePhrases.delete(potentialSubset);
-        }
-      }
-    }
-    
-    // Add all included phrases to the result
-    for (const phrase of includePhrases) {
-      result[phrase] = count;
-    }
-  });
-  
-  return result;
-}
-
 // Function to call Gemini API for generating AI insights for WhatsApp
 async function generateAIInsights(messages: WhatsAppMessage[], stats: ChatStats): Promise<{
   aiSummary: string;
@@ -1056,8 +866,6 @@ async function generateAIInsights(messages: WhatsAppMessage[], stats: ChatStats)
       mostUsedWords: stats.mostUsedWords?.slice(0, 10),
       mostUsedEmojis: stats.mostUsedEmojis?.slice(0, 10),
       responseTimes: stats.responseTimes,
-      commonPhrases: stats.commonPhrases?.slice(0, 10),
-      overusedPhrases: stats.overusedPhrases,
       biggestGaps: stats.biggestGaps?.slice(0, 5),
       longestMessages: stats.longestMessages,
       messagesByHour: stats.messagesByHour,

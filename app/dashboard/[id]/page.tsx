@@ -31,7 +31,6 @@ import { ResponseTimes } from "@/components/dashboard/response-times";
 import { ActivityPatterns } from "@/components/dashboard/activity-patterns";
 import { Media } from "@/components/dashboard/media";
 import { EmojiAnalysis } from "@/components/dashboard/emoji-analysis";
-import { PhraseAnalysis } from "@/components/dashboard/phrase-analysis";
 import { AIInsights } from "@/components/dashboard/ai-insights";
 import { TLDR } from "@/components/dashboard/tldr";
 import { authClient } from "@/lib/auth-client";
@@ -316,7 +315,6 @@ export default function AnalysisDashboard() {
             <TabsTrigger value="activity">Activity Patterns</TabsTrigger>
             <TabsTrigger value="media">Media</TabsTrigger>
             <TabsTrigger value="emoji">Emoji Analysis</TabsTrigger>
-            <TabsTrigger value="phrases">Phrase Analysis</TabsTrigger>
             <TabsTrigger value="ai">AI Insights</TabsTrigger>
           </TabsList>
 
@@ -361,12 +359,6 @@ export default function AnalysisDashboard() {
               </Suspense>
             </TabsContent>
 
-            <TabsContent value="phrases" className="mt-0 overflow-x-auto">
-              <Suspense fallback={<TabLoadingFallback />}>
-                <PhraseAnalysis stats={safeStats} />
-              </Suspense>
-            </TabsContent>
-
             <TabsContent value="ai" className="mt-0 overflow-x-auto">
               <Suspense fallback={<TabLoadingFallback />}>
                 <AIInsights
@@ -398,8 +390,6 @@ export default function AnalysisDashboard() {
                   ? "Media"
                   : activeTab === "emoji"
                   ? "Emoji Analysis"
-                  : activeTab === "phrases"
-                  ? "Phrase Analysis"
                   : activeTab === "ai"
                   ? "AI Insights"
                   : "Activity Patterns"}
@@ -471,16 +461,6 @@ export default function AnalysisDashboard() {
                 Emoji Analysis
               </Button>
               <Button
-                variant={activeTab === "phrases" ? "default" : "ghost"}
-                onClick={() => {
-                  setActiveTab("phrases");
-                  setDrawerOpen(false);
-                }}
-                className="justify-start"
-              >
-                Phrase Analysis
-              </Button>
-              <Button
                 variant={activeTab === "ai" ? "default" : "ghost"}
                 onClick={() => {
                   setActiveTab("ai");
@@ -540,13 +520,6 @@ export default function AnalysisDashboard() {
           <Suspense fallback={<TabLoadingFallback />}>
             <div className="overflow-x-auto">
               <EmojiAnalysis stats={safeStats} />
-            </div>
-          </Suspense>
-        )}
-        {activeTab === "phrases" && (
-          <Suspense fallback={<TabLoadingFallback />}>
-            <div className="overflow-x-auto">
-              <PhraseAnalysis stats={safeStats} />
             </div>
           </Suspense>
         )}

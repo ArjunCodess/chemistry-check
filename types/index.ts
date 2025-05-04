@@ -122,8 +122,6 @@ export interface ChatStats {
     total: number;
     byUser: Record<string, number>;
   };
-  commonPhrases: Array<{ text: string; count: number }>;
-  overusedPhrases: Record<string, Array<{ text: string; count: number }>>;
   gapTrends: Array<{ time: string; duration: number }>;
   gapAnalysis: Record<string, Array<{ time: string; duration: number }>>;
   biggestGaps: Array<{ user: string; duration: number; date: string }>;
