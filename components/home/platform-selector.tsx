@@ -9,21 +9,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
 import { Platform } from "../../lib/platform-instructions";
+import { Label } from "../ui/label";
 
 interface PlatformSelectorProps {
   platform: Platform | null;
   setPlatform: (platform: Platform) => void;
 }
 
-export function PlatformSelector({ platform, setPlatform }: PlatformSelectorProps) {
+export function PlatformSelector({
+  platform,
+  setPlatform,
+}: PlatformSelectorProps) {
   return (
     <div className="space-y-1 sm:space-y-2">
-      <label
-        htmlFor="platform"
-        className="block text-xs sm:text-sm font-medium text-neutral-700"
-      >
-        Select Platform
-      </label>
+      <Label htmlFor="platform">Select Platform</Label>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -50,4 +49,4 @@ export function PlatformSelector({ platform, setPlatform }: PlatformSelectorProp
       </DropdownMenu>
     </div>
   );
-} 
+}
