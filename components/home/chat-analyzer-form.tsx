@@ -51,10 +51,16 @@ export function ChatAnalyzerForm() {
       formData.append("platform", platform);
       formData.append("name", name || "Untitled Analysis");
       
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = "Analysis in progress. Are you sure you want to leave?";
+        return e.returnValue;
+      };
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      
       const response = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
-        // The credentials: 'include' is key for sending cookies
         credentials: 'include',
       });
 
@@ -73,15 +79,17 @@ export function ChatAnalyzerForm() {
 
       toast.success("Chat analysis complete!");
 
+      // Remove beforeunload event listener
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+
       // Add a small delay before redirecting to show the toast
       setTimeout(() => {
-        // Redirect to the specific analysis page
         if (data.analysisId) {
           router.push(`/dashboard/${data.analysisId}`);
         } else {
           router.push("/dashboard");
         }
-      }, 1500);
+      }, 500);
     } catch (error) {
       console.error("Error uploading file:", error);
       toast.error(error instanceof Error ? error.message : "Failed to analyze chat");
@@ -111,7 +119,14 @@ export function ChatAnalyzerForm() {
         disabled={!file || !platform || isLoading || !session}
         className="w-full py-2 sm:py-3 text-sm sm:text-base transition-colors"
       >
-        {isLoading ? "Analyzing..." : "Analyze Chat"}
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            <span>Analyzing... Please don&apos;t close this tab</span>
+          </div>
+        ) : (
+          "Analyze Chat"
+        )}
       </Button>
       {!session && (
         <p className="text-sm text-red-500">You must be signed in to analyze chats</p>
