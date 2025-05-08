@@ -84,7 +84,7 @@ export async function generateAIInsights(stats: ChatStats, sampleMessages: Array
       Sample Messages:
       ${JSON.stringify(sampleMessages, null, 2)}
       
-      IMPORTANT: In your response, use the actual names from the messages instead of "User1" or "User2".
+      IMPORTANT: IN YOUR RESPONSE, USE THE ACTUAL NAMES FROM THE MESSAGES INSTEAD OF "USER1" OR "USER2".
       
       Respond in the following JSON format only:
       {
