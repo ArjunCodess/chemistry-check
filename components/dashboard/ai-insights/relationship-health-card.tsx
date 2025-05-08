@@ -25,7 +25,7 @@ export function RelationshipHealthCard({ stats }: RelationshipHealthCardProps) {
                   {stats.relationshipHealthScore.overall}/100
                 </span>
               </div>
-              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
                 <div
                   className={`h-full ${
                     stats.relationshipHealthScore.overall >= 80
@@ -54,7 +54,7 @@ export function RelationshipHealthCard({ stats }: RelationshipHealthCardProps) {
                       {stats.relationshipHealthScore.details.balance}/100
                     </span>
                   </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                     <div
                       className="bg-blue-500 h-full"
                       style={{
@@ -70,7 +70,7 @@ export function RelationshipHealthCard({ stats }: RelationshipHealthCardProps) {
                       {stats.relationshipHealthScore.details.engagement}/100
                     </span>
                   </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                     <div
                       className="bg-blue-500 h-full"
                       style={{
@@ -86,7 +86,7 @@ export function RelationshipHealthCard({ stats }: RelationshipHealthCardProps) {
                       {stats.relationshipHealthScore.details.positivity}/100
                     </span>
                   </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                     <div
                       className="bg-blue-500 h-full"
                       style={{
@@ -102,7 +102,7 @@ export function RelationshipHealthCard({ stats }: RelationshipHealthCardProps) {
                       {stats.relationshipHealthScore.details.consistency}/100
                     </span>
                   </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                     <div
                       className="bg-blue-500 h-full"
                       style={{

@@ -63,7 +63,7 @@ export function ChatSummaryCard({
                 `}</style>
               </div>
             )}
-            <div className="p-4 bg-slate-50 rounded-lg antialiased">
+            <div className="p-4 bg-neutral-50 rounded-lg antialiased">
               <p className="whitespace-pre-line text-xs md:text-sm">
                 {showFullSummary
                   ? stats.aiSummary
@@ -82,7 +82,7 @@ export function ChatSummaryCard({
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <div className="mb-4 bg-slate-100 p-4 rounded-full">
+            <div className="mb-4 bg-neutral-100 p-4 rounded-full">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"

@@ -21,7 +21,7 @@ export function MatchPercentageCard({ stats }: MatchPercentageCardProps) {
             <div className="flex justify-center">
               <div className="relative w-36 h-36 flex items-center justify-center">
                 {/* Gauge background (full circle) */}
-                <div className="absolute inset-0 rounded-full bg-slate-100"></div>
+                <div className="absolute inset-0 rounded-full bg-neutral-100"></div>
                 
                 {/* Gauge fill */}
                 <div 
@@ -37,7 +37,7 @@ export function MatchPercentageCard({ stats }: MatchPercentageCardProps) {
                 ></div>
                 
                 {/* Inner white circle */}
-                <div className="absolute inset-3 rounded-full bg-white flex items-center justify-center">
+                <div className="absolute inset-3 rounded-full bg-card flex items-center justify-center">
                   <span className={`text-4xl font-bold ${
                     stats.matchPercentage.score >= 80 ? 'text-green-500' : 
                     stats.matchPercentage.score >= 60 ? 'text-blue-500' : 

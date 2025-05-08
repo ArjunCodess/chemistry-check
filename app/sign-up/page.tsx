@@ -49,7 +49,7 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-[calc(100vh-120px)] flex-col items-center justify-center p-4 py-6 sm:py-12">
-      <div className="w-full max-w-[340px] sm:max-w-md space-y-6 sm:space-y-8 rounded-lg border border-neutral-200 bg-white p-4 sm:p-8 shadow-md">
+      <div className="w-full max-w-[340px] sm:max-w-md space-y-6 sm:space-y-8 rounded-lg border border-neutral-200 bg-card p-4 sm:p-8 shadow-md">
         <div className="text-center">
           <h1 className="text-xl sm:text-2xl font-bold">Sign Up</h1>
           <p className="mt-2 text-xs sm:text-sm text-neutral-600">
@@ -132,7 +132,7 @@ export default function SignUpPage() {
             <div className="w-full border-t border-neutral-300"></div>
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-white px-2 text-xs sm:text-sm text-neutral-500">
+            <span className="bg-card px-2 text-xs sm:text-sm text-neutral-500">
               Or continue with
             </span>
           </div>

@@ -43,7 +43,7 @@ export function AttachmentStyleCard({ stats }: AttachmentStyleCardProps) {
                         <span>Secure</span>
                         <span>{data.details.secure}%</span>
                       </div>
-                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-green-500"
                           style={{ width: `${data.details.secure}%` }}
@@ -56,7 +56,7 @@ export function AttachmentStyleCard({ stats }: AttachmentStyleCardProps) {
                         <span>Anxious</span>
                         <span>{data.details.anxious}%</span>
                       </div>
-                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-yellow-500"
                           style={{ width: `${data.details.anxious}%` }}
@@ -69,7 +69,7 @@ export function AttachmentStyleCard({ stats }: AttachmentStyleCardProps) {
                         <span>Avoidant</span>
                         <span>{data.details.avoidant}%</span>
                       </div>
-                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500"
                           style={{ width: `${data.details.avoidant}%` }}
@@ -82,7 +82,7 @@ export function AttachmentStyleCard({ stats }: AttachmentStyleCardProps) {
                         <span>Disorganized</span>
                         <span>{data.details.disorganized}%</span>
                       </div>
-                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-red-500"
                           style={{ width: `${data.details.disorganized}%` }}

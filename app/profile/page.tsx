@@ -33,7 +33,7 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-4xl md:px-4 md:py-12">
-      <div className="md:rounded-lg border border-neutral-200 bg-white p-8 shadow-md">
+      <div className="md:rounded-lg border border-neutral-200 bg-card p-8 shadow-md">
         <div className="flex flex-col items-center space-y-4 text-center sm:flex-row sm:space-x-8 sm:space-y-0 sm:text-left">
           <div className="relative h-24 w-24">
             <div className="h-24 w-24 rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden">

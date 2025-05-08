@@ -24,7 +24,7 @@ export default function Header() {
 
   if (!mounted) {
     return (
-      <header className="w-full border-b border-neutral-200 bg-white">
+      <header className="w-full border-b border-neutral-200 bg-card">
         <div className="container mx-auto px-4 flex h-16 items-center justify-between">
           <Link href="/" className="font-bold text-xl">
             ChemistryCheck
@@ -36,7 +36,7 @@ export default function Header() {
   }
 
   return (
-    <header className="w-full border-b border-neutral-200 bg-white">
+    <header className="w-full border-b border-neutral-200 bg-card">
       <div className="container mx-auto px-4 flex h-16 items-center justify-between">
         <Link href="/" className="font-bold text-xl flex items-center gap-2">
           <Image src="/logo.png" alt="ChemistryCheck" width={50} height={50} />

@@ -24,7 +24,7 @@ export function InterestPercentageCard({ stats }: InterestPercentageCardProps) {
                   <div className="text-center mb-4 text-sm font-medium">{user}</div>
                   <div className="relative w-28 h-28 flex items-center justify-center">
                     {/* Gauge background (full circle) */}
-                    <div className="absolute inset-0 rounded-full bg-slate-100"></div>
+                    <div className="absolute inset-0 rounded-full bg-neutral-100"></div>
                     
                     {/* Gauge fill */}
                     <div 
@@ -40,7 +40,7 @@ export function InterestPercentageCard({ stats }: InterestPercentageCardProps) {
                     ></div>
                     
                     {/* Inner white circle */}
-                    <div className="absolute inset-2 rounded-full bg-white flex items-center justify-center">
+                    <div className="absolute inset-2 rounded-full bg-card flex items-center justify-center">
                       <span className={`text-3xl font-bold ${
                         data.score >= 80 ? 'text-pink-500' : 
                         data.score >= 60 ? 'text-blue-500' : 
@@ -58,7 +58,7 @@ export function InterestPercentageCard({ stats }: InterestPercentageCardProps) {
                     <span>Initiation</span>
                     <span>{data.details.initiation}/100</span>
                   </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2">
+                  <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden mb-2">
                     <div
                       className="h-full bg-blue-500"
                       style={{ width: `${data.details.initiation}%` }}
@@ -69,7 +69,7 @@ export function InterestPercentageCard({ stats }: InterestPercentageCardProps) {
                     <span>Response Rate</span>
                     <span>{data.details.responseRate}/100</span>
                   </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2">
+                  <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden mb-2">
                     <div
                       className="h-full bg-green-500"
                       style={{ width: `${data.details.responseRate}%` }}
@@ -80,7 +80,7 @@ export function InterestPercentageCard({ stats }: InterestPercentageCardProps) {
                     <span>Enthusiasm</span>
                     <span>{data.details.enthusiasm}/100</span>
                   </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-2">
+                  <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden mb-2">
                     <div
                       className="h-full bg-purple-500"
                       style={{ width: `${data.details.enthusiasm}%` }}
@@ -91,7 +91,7 @@ export function InterestPercentageCard({ stats }: InterestPercentageCardProps) {
                     <span>Consistency</span>
                     <span>{data.details.consistency}/100</span>
                   </div>
-                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-neutral-100 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-amber-500"
                       style={{ width: `${data.details.consistency}%` }}

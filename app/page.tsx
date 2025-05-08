@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <main className="min-h-[calc(100vh-70px)] bg-gradient-to-b from-neutral-100 to-white px-4 sm:p-6 md:p-8">
       <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl mx-auto">
-        <Card className="bg-white/80 backdrop-blur-sm border-neutral-200 shadow-sm">
+        <Card className="bg-card backdrop-blur-sm border-neutral-200 shadow-sm">
           <CardHeader className="flex items-center justify-between px-4 sm:px-6">
             <div className="flex-1 pr-8">
               <CardTitle className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">
