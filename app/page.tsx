@@ -31,12 +31,12 @@ export default function Home() {
   const isAuthenticated = !!session;
 
   return (
-    <main className="min-h-[calc(100vh-70px)] bg-gradient-to-b from-neutral-100 to-white px-4 sm:p-6 md:p-8">
+    <main className="min-h-[calc(100vh-70px)] bg-gradient-to-b from-neutral-100 to-white px-2 py-4">
       <div className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-2xl mx-auto">
         <Card className="bg-card backdrop-blur-sm border-neutral-200 shadow-sm">
-          <CardHeader className="flex items-center justify-between px-4 sm:px-6">
-            <div className="flex-1 pr-8">
-              <CardTitle className="text-2xl sm:text-3xl font-bold text-neutral-900 mb-3">
+          <CardHeader className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 pb-4 sm:pb-6">
+            <div className="order-2 sm:order-1 flex-1 text-center sm:text-left sm:pr-4">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl font-bold text-neutral-900 mb-2 sm:mb-3">
                 ChemistryCheck
               </CardTitle>
               <CardDescription className="text-sm sm:text-base text-neutral-600 leading-relaxed">
@@ -44,17 +44,17 @@ export default function Home() {
                 get insights
               </CardDescription>
             </div>
-            <div className="flex items-center justify-end my-auto">
+            <div className="flex items-center justify-center sm:justify-end sm:order-2 order-1">
               <Image
                 src="/logo.png"
                 alt="ChemistryCheck"
-                width={120}
-                height={120}
-                className="object-contain"
+                width={150}
+                height={150}
+                className="w-28 h-28 object-contain"
               />
             </div>
           </CardHeader>
-          <CardContent className="px-4 sm:px-6">
+          <CardContent className="px-3 sm:px-6">
             {isAuthenticated ? (
               <ChatAnalyzerForm />
             ) : (
@@ -72,7 +72,7 @@ export default function Home() {
                     </div>
                   </div>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Authentication Required</AlertDialogTitle>
                     <AlertDialogDescription>
@@ -80,8 +80,8 @@ export default function Home() {
                       Please sign in or create an account to continue.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+                    <AlertDialogCancel className="mt-2 sm:mt-0">Cancel</AlertDialogCancel>
                     <AlertDialogAction asChild>
                       <Link href="/sign-in">Sign In</Link>
                     </AlertDialogAction>

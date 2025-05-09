@@ -71,12 +71,6 @@ export function ChatAnalyzerForm() {
         throw new Error(data.error || data.details || "Failed to analyze chat");
       }
 
-      // Store stats in localStorage for the dashboard
-      localStorage.setItem("chatStats", JSON.stringify({
-        stats: data,
-        timestamp: new Date().toISOString(),
-      }));
-
       toast.success("Chat analysis complete!");
 
       // Remove beforeunload event listener
