@@ -7,6 +7,15 @@ import { chatAnalysis, user, session as sessionTable } from '@/db/schema';
 import { auth } from '@/lib/auth';
 import { eq } from 'drizzle-orm';
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '4mb',
+    },
+    responseLimit: '4mb'
+  },
+};
+
 export async function POST(request: NextRequest) {
   try {
     console.log("Starting analyze API request");

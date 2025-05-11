@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <main>
       <section className="relative overflow-hidden">
-        <div className="mx-auto max-w-[90rem] py-8 sm:py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[90rem] py-12 sm:py-20 md:py-28 lg:py-36 px-4 sm:px-6 lg:px-8">
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
             <div className="my-auto">
               <div className="flex flex-col items-center lg:items-start gap-4 sm:gap-6 md:gap-8 max-w-lg text-center lg:text-left mx-auto lg:mx-0">
@@ -32,7 +32,7 @@ export default function Home() {
                   seen this coming.&ldquo;
                 </p>
 
-                <ul className="w-full space-y-2 font-medium">
+                <ul className="w-full space-y-2 font-medium text-sm sm:text-base md:text-lg text-balance">
                   <div className="space-y-2">
                     <li className="flex gap-1.5 items-center text-left">
                       <Check className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-primary-600" />{" "}
@@ -116,19 +116,19 @@ export default function Home() {
               <div className="grid gap-8 sm:grid-cols-3 sm:gap-12 mt-8">
                 <div className="relative z-10">
                   <p className="text-lg italic text-primary-700">
-                    💔 75% of the apologies come from you.
+                    75% of the apologies<br />come from you.
                   </p>
                 </div>
 
                 <div className="relative z-10">
                   <p className="text-lg italic text-primary-700">
-                    😶 You send paragraphs. She sends &ldquo;lol&rdquo;.
+                    You send paragraphs.<br />She sends &ldquo;lol&rdquo;.
                   </p>
                 </div>
 
                 <div className="relative z-10">
                   <p className="text-lg italic text-primary-700">
-                    🤖 You&apos;ve been ghosted. But in slow motion.
+                    You&apos;ve been ghosted.<br />But in slow motion.
                   </p>
                 </div>
               </div>
@@ -188,9 +188,6 @@ export default function Home() {
                 <div className="p-4 rounded-full mb-6 bg-primary-100">
                   {step.icon}
                 </div>
-                <div className="bg-neutral-100 font-bold rounded-full w-10 h-10 flex items-center justify-center mb-4">
-                  {step.number}
-                </div>
                 <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
                 <p className="text-neutral-600">{step.description}</p>
               </div>
@@ -218,7 +215,7 @@ export default function Home() {
 
           <div className="mt-12 text-center">
             <Link href="/new">
-              <Button className="px-8 py-6 text-lg w-sm">
+              <Button className="w-full md:w-sm">
                 Upload your chat
                 <MoveRight className="w-4 h-4 ml-2" />
               </Button>
