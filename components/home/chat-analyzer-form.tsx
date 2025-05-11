@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { PlatformSelector } from "./platform-selector";
 import { FileUpload } from "./file-upload";
-import { ExportInstructions } from "./export-instructions";
-import { PLATFORM_INSTRUCTIONS, Platform } from "@/lib/platform-instructions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
+import { Platform } from "@/lib/platform-instructions";
 
 export function ChatAnalyzerForm() {
   const [file, setFile] = useState<File | null>(null);
@@ -50,18 +49,18 @@ export function ChatAnalyzerForm() {
       formData.append("file", file);
       formData.append("platform", platform);
       formData.append("name", name || "Untitled Analysis");
-      
+
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         e.preventDefault();
         e.returnValue = "Analysis in progress. Are you sure you want to leave?";
         return e.returnValue;
       };
       window.addEventListener("beforeunload", handleBeforeUnload);
-      
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
-        credentials: 'include',
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -86,13 +85,13 @@ export function ChatAnalyzerForm() {
       }, 500);
     } catch (error) {
       console.error("Error uploading file:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to analyze chat");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to analyze chat"
+      );
     } finally {
       setIsLoading(false);
     }
   };
-
-  const platformSteps = platform ? PLATFORM_INSTRUCTIONS[platform] : [];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
@@ -104,9 +103,13 @@ export function ChatAnalyzerForm() {
           placeholder="E.g., 'Conversation with Alex' or 'Group Chat Analysis'"
           value={name}
           onChange={handleNameChange}
+          className="text-sm sm:text-base"
         />
       </div>
-      <PlatformSelector platform={platform} setPlatform={setPlatform as (p: Platform) => void} />
+      <PlatformSelector
+        platform={platform}
+        setPlatform={setPlatform as (p: Platform) => void}
+      />
       <FileUpload handleFileChange={handleFileChange} />
       <Button
         type="submit"
@@ -123,9 +126,10 @@ export function ChatAnalyzerForm() {
         )}
       </Button>
       {!session && (
-        <p className="text-sm text-red-500">You must be signed in to analyze chats</p>
+        <p className="text-sm text-red-500">
+          You must be signed in to analyze chats
+        </p>
       )}
-      {platform && <ExportInstructions steps={platformSteps} />}
     </form>
   );
-} 
+}
