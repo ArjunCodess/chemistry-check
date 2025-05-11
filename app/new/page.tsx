@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ChatAnalyzerForm } from "@/components/home/chat-analyzer-form";
+import { ChatAnalyzerForm } from "@/components/new/chat-analyzer-form";
 import { authClient } from "@/lib/auth-client";
 import {
   AlertDialog,
