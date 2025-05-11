@@ -43,6 +43,11 @@ export function ChatAnalyzerForm() {
       return;
     }
 
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("File size exceeds 20MB limit. Please upload a smaller file.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       const formData = new FormData();
@@ -57,19 +62,29 @@ export function ChatAnalyzerForm() {
       };
       window.addEventListener("beforeunload", handleBeforeUnload);
 
+      toast.info("Uploading file and analyzing chat...");
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
         credentials: "include",
+        headers: {
+          'Accept': 'application/json',
+        },
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        console.error("API error response:", data);
+        if (response.status === 413) {
+          throw new Error("File too large. Please use a smaller chat export file.");
+        }
+        
+        const data = await response.json().catch(() => ({ 
+          error: `Server error: ${response.status} ${response.statusText}` 
+        }));
         throw new Error(data.error || data.details || "Failed to analyze chat");
       }
 
+      const data = await response.json();
       toast.success("Chat analysis complete!");
 
       // Remove beforeunload event listener

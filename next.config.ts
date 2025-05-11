@@ -13,7 +13,13 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '15mb',
     },
-  }
-};
+  },
+  api: {
+    bodyParser: {
+      sizeLimit: '15mb',
+    },
+    responseLimit: '15mb',
+  },
+}
 
 export default nextConfig;
