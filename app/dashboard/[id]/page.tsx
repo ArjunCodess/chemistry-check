@@ -119,7 +119,7 @@ export default function AnalysisDashboard() {
   }, [analysisId]);
 
   const handleUploadNewChat = () => {
-    router.push("/");
+    router.push("/new");
   };
 
   // Function to handle name update
@@ -168,7 +168,7 @@ export default function AnalysisDashboard() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="text-xl">Analysis not found or no longer available</div>
-        <Button className="mt-4" onClick={() => router.push("/")}>
+        <Button className="mt-4" onClick={() => router.push("/new")}>
           Upload New Chat
         </Button>
       </div>

@@ -82,7 +82,7 @@ export default function DashboardPage() {
   };
 
   const handleNewAnalysis = () => {
-    router.push("/");
+    router.push("/new");
   };
 
   const handleDeleteAnalysis = async (id: string) => {
