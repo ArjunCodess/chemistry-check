@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import Header from "@/components/header";
+import Header from "@/components/shared/header";
 import { config } from "dotenv";
 import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";

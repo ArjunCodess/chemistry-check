@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import SignOutButton from "@/components/sign-out-button";
+import SignOutButton from "@/components/shared/sign-out-button";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import { authClient } from "@/lib/auth-client";

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { PlatformSelector } from "./platform-selector";
+import { PlatformSelector } from "../shared/platform-selector";
 import { FileUpload } from "./file-upload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
