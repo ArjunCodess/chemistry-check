@@ -1,7 +1,231 @@
-import React from 'react'
+import { Button } from "@/components/ui/button";
+import { steps } from "@/lib/how-it-works-steps";
+import { cn } from "@/lib/utils";
+import { Check, MoveRight } from "lucide-react";
+import Link from "next/link";
+import Demo from "@/components/landing/demo";
+import Image from "next/image";
 
-export default function LandingPage() {
+export default function Home() {
   return (
-    <div>LandingPage</div>
-  )
+    <main>
+      <section className="relative overflow-hidden">
+        <div className="mx-auto max-w-[90rem] py-8 sm:py-16 md:py-24 lg:py-32 px-4 sm:px-6 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
+            <div className="my-auto">
+              <div className="flex flex-col items-center lg:items-start gap-4 sm:gap-6 md:gap-8 max-w-lg text-center lg:text-left mx-auto lg:mx-0">
+                <h1
+                  className={cn(
+                    "relative tracking-tight font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-neutral-900 leading-tight sm:leading-[3.25rem] md:leading-[4rem]"
+                  )}
+                >
+                  ChemistryCheck
+                </h1>
+
+                <p className="text-sm sm:text-base md:text-lg text-balance">
+                  Decode your chats. Understand your relationships. Get{" "}
+                  <span className={cn("font-bold text-primary-600")}>
+                    brutally honest
+                  </span>{" "}
+                  insights about what&apos;s really happening between the lines.
+                  Spot warning signs early. No more &ldquo;Wish I would&apos;ve
+                  seen this coming.&ldquo;
+                </p>
+
+                <ul className="w-full space-y-2 font-medium">
+                  <div className="space-y-2">
+                    <li className="flex gap-1.5 items-center text-left">
+                      <Check className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-primary-600" />{" "}
+                      Upload WhatsApp, Telegram, or Instagram chats
+                    </li>
+                    <li className="flex gap-1.5 items-center text-left">
+                      <Check className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-primary-600" />{" "}
+                      AI-powered relationship insights
+                    </li>
+                    <li className="flex gap-1.5 items-center text-left">
+                      <Check className="h-4 w-4 sm:h-5 sm:w-5 shrink-0 text-primary-600" />{" "}
+                      Spot red flags and communication patterns
+                    </li>
+                  </div>
+                </ul>
+                <Link href="/new" className="w-full mt-2">
+                  <Button variant="default" className="w-full">
+                    Analyze Your Chats
+                    <MoveRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="relative mt-16 sm:mt-12 lg:mt-0">
+              <Image
+                src="/this-you.png"
+                alt="This you?"
+                width={300}
+                height={300}
+                className="absolute w-36 sm:w-48 right-0 -top-10 sm:left-2/3 sm:-top-14 select-none"
+              />
+              <Demo />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-primary-100 bg-[url('/base.png')] bg-repeat bg-blend-multiply px-4">
+        <div className="mx-auto max-w-6xl gap-6 py-16 sm:py-24 lg:py-32 lg:gap-x-8 lg:px-8">
+          <div className="w-full flex flex-col">
+            <div className="flex flex-col justify-center text-center gap-2">
+              <h2 className="font-heading text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight text-balance sm:leading-none tracking-tight px-2">
+                <span className="bg-primary-700 text-white rounded-lg px-2 sm:px-4 block sm:inline w-fit mx-auto sm:mx-0">
+                  Does she even
+                </span>{" "}
+                <i>like</i> me?
+              </h2>
+              <p className="text-lg italic mt-2">
+                - you, after re-reading &ldquo;lol ok&rdquo; for the 27th time
+              </p>
+            </div>
+
+            <p className="text-center mx-auto mt-8 sm:mt-12 text-base sm:text-lg max-w-xl text-balance px-2">
+              <span className="font-semibold">
+                Chatting is easy. Understanding isn&apos;t.
+              </span>{" "}
+              You send memes, share playlists, talk for hours - but you&apos;re
+              still stuck decoding her &ldquo;hmm&rdquo; at 1:43am.
+            </p>
+
+            <p className="text-center mx-auto mt-4 text-base sm:text-lg max-w-xl text-balance px-2">
+              Does she care?
+              <br />
+              Is she bored?
+              <br />
+              Is this just ✨ trauma bonding ✨<br />
+              or something real?
+            </p>
+
+            <p className="text-center mx-auto mt-4 text-base sm:text-lg max-w-xl text-balance px-2">
+              You&apos;re not delusional. You&apos;re just in a texting
+              situationship without a compass.
+            </p>
+
+            <div className="max-w-3xl mx-auto mt-12 sm:mt-16 text-center px-4">
+              <h3 className="font-bold text-xl sm:text-2xl">
+                Conversations don&apos;t lie. But they do get messy.
+              </h3>
+
+              <div className="grid gap-8 sm:grid-cols-3 sm:gap-12 mt-8">
+                <div className="relative z-10">
+                  <p className="text-lg italic text-primary-700">
+                    💔 75% of the apologies come from you.
+                  </p>
+                </div>
+
+                <div className="relative z-10">
+                  <p className="text-lg italic text-primary-700">
+                    😶 You send paragraphs. She sends &ldquo;lol&rdquo;.
+                  </p>
+                </div>
+
+                <div className="relative z-10">
+                  <p className="text-lg italic text-primary-700">
+                    🤖 You&apos;ve been ghosted. But in slow motion.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-12 sm:mt-16">
+                <h3 className="font-bold text-xl sm:text-2xl">
+                  ChemistryCheck reads between the lines.
+                </h3>
+                <p className="mt-4">
+                  Upload your WhatsApp, Telegram, or Insta chats. Get brutally
+                  honest AI-powered insights:
+                </p>
+
+                <ul className="mt-4 space-y-2 text-center flex flex-col justify-center items-center">
+                  <li className="flex items-center gap-2">
+                    <span className="text-xl">📊</span> Who cares more.{" "}
+                    <span className="text-xl">📊</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-xl">🚩</span> Where the red flags
+                    hide. <span className="text-xl">🚩</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="text-xl">❤️</span> Whether this is love -
+                    or just loneliness dressed in dopamine.{" "}
+                    <span className="text-xl">❤️</span>
+                  </li>
+                </ul>
+
+                <p className="mt-8 font-medium">
+                  Built by someone who lost. For those still losing.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How It Works
+            </h2>
+            <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
+              Getting insights into your conversations is simple with our
+              three-step process.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {steps.map((step, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center text-center"
+              >
+                <div className="p-4 rounded-full mb-6 bg-primary-100">
+                  {step.icon}
+                </div>
+                <div className="bg-neutral-100 font-bold rounded-full w-10 h-10 flex items-center justify-center mb-4">
+                  {step.number}
+                </div>
+                <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
+                <p className="text-neutral-600">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-primary-100 bg-[url('/base.png')] bg-repeat bg-blend-multiply px-4">
+        <div className="mx-auto max-w-6xl gap-6 py-16 sm:py-24 lg:py-32 lg:gap-x-8 lg:px-8">
+          <h2 className="mx-auto text-balance text-3xl sm:text-5xl lg:text-6xl text-center font-bold leading-tight sm:leading-[4.25rem] tracking-tight max-w-2xl text-slate-900 px-4">
+            Upload your chat{" "}
+            <span className="px-2 sm:px-4 bg-primary-700 rounded-lg text-white">
+              now
+            </span>
+          </h2>
+
+          <p className="text-center mx-auto mt-8 sm:mt-12 text-base sm:text-lg max-w-xl text-balance px-4">
+            <span className="font-semibold">
+              Get honest insights in seconds!
+            </span>{" "}
+            Upload your chat history and let our AI analyze what&apos;s really
+            happening between the lines.
+          </p>
+
+          <div className="mt-12 text-center">
+            <Link href="/new">
+              <Button className="px-8 py-6 text-lg w-sm">
+                Upload your chat
+                <MoveRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
 }
