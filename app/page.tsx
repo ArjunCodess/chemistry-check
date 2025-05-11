@@ -80,7 +80,7 @@ export default function Home() {
                       Please sign in or create an account to continue.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
-                  <AlertDialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+                  <AlertDialogFooter className="flex-col sm:flex-row gap-2">
                     <AlertDialogCancel className="mt-2 sm:mt-0">Cancel</AlertDialogCancel>
                     <AlertDialogAction asChild>
                       <Link href="/sign-in">Sign In</Link>
