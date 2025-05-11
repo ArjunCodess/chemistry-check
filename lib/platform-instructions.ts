@@ -109,12 +109,12 @@ export const PLATFORM_INSTRUCTIONS: Record<Platform, InstructionStep[]> = {
         "Wait for Instagram to email you the download link (10-30 minutes), then click the link or download the file from the 'Download Your Information' page in the app.",
     },
     {
-      label: "Download File",
-      description: "Download the file.",
+      label: "Download Zip File",
+      description: "Download the zip file.",
     },
     {
       label: "Upload File",
-      description: "Upload the SPECIFIC file by navigating to your_instagram_activity -> messages -> inbox -> [USER_YOU_WANT_TO_ANALYZE] -> message_1.json using the 'Choose File' option above.",
+      description: "Upload the SPECIFIC user's message file which you want to analyze. (More info in the note above)",
     },
     {
       label: "Get Analysis",
@@ -153,7 +153,7 @@ export const PLATFORM_INSTRUCTIONS: Record<Platform, InstructionStep[]> = {
     },
     {
       label: "Upload File",
-      description: "Upload the file using the choose file option below.",
+      description: "Upload the text file using the choose file option below.",
     },
     {
       label: "Get Analysis",
@@ -161,3 +161,15 @@ export const PLATFORM_INSTRUCTIONS: Record<Platform, InstructionStep[]> = {
     },
   ],
 }; 
+
+export const PLATFORM_VIDEO_TUTORIALS: Record<Platform, string> = {
+  telegram: "/telegram_chat_export.mp4",
+  instagram: "/instagram_chat_export.mp4",
+  whatsapp: "/whatsapp_chat_export.mp4",
+};
+
+export const PLATFORM_NOTES: Record<Platform, string> = {
+  telegram: "Telegram is the only platform that allows you to export chat history from the desktop app. After requesting export, you'll receive a 'Data export request' message from Telegram Notifications. Accept it from your phone and repeat the export steps.",
+  instagram: "After requesting export, wait for the email containing your chat data. Download the zip file and navigate to your_instagram_activity -> messages -> inbox -> [USER_YOU_WANT_TO_ANALYZE] -> message_1.json to upload the specific file.",
+  whatsapp: "WhatsApp requires you to be logged in to the mobile app to export chat history. Download the zip file you received, unzip it, and then upload the text file.",
+};

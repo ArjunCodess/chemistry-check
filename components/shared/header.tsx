@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LayoutDashboard, LogOut, Plus, User } from "lucide-react";
+import { HelpCircle, LayoutDashboard, LogOut, Plus, User } from "lucide-react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 
@@ -73,7 +73,7 @@ export default function Header() {
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[180px]">
+            <DropdownMenuContent align="end" className="w-[200px]">
               <DropdownMenuItem asChild>
                 <Link href="/new" className="flex items-center gap-2">
                   <Plus className="h-4 w-4" />
@@ -84,6 +84,12 @@ export default function Header() {
                 <Link href="/dashboard" className="flex items-center gap-2">
                   <LayoutDashboard className="h-4 w-4" />
                   <span>Dashboard</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/help" className="flex items-center gap-2">
+                  <HelpCircle className="h-4 w-4" />
+                  <span>How to Export Chat</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
