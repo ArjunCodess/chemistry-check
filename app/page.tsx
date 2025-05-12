@@ -5,6 +5,7 @@ import { Check, MoveRight } from "lucide-react";
 import Link from "next/link";
 import Demo from "@/components/landing/demo";
 import Image from "next/image";
+import Footer from "@/components/shared/footer";
 
 export default function Home() {
   return (
@@ -223,6 +224,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+      <Footer />
     </main>
   );
 }
