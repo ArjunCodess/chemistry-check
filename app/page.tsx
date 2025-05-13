@@ -15,6 +15,17 @@ export default function Home() {
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
             <div className="my-auto">
               <div className="flex flex-col items-center lg:items-start gap-4 sm:gap-6 md:gap-8 max-w-lg text-center lg:text-left mx-auto lg:mx-0">
+                <Link
+                  href="https://www.producthunt.com/posts/chemistrycheck?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-chemistrycheck"
+                  target="_blank"
+                >
+                  <Image
+                    src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=961102&theme=light&t=1747141299619"
+                    alt="ChemistryCheck - Because&#0032;words&#0032;aren't&#0032;always&#0032;honest | Product Hunt"
+                    width="250"
+                    height="54"
+                  />
+                </Link>
                 <h1
                   className={cn(
                     "relative tracking-tight font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-neutral-900 leading-tight sm:leading-[3.25rem] md:leading-[4rem]"
@@ -117,19 +128,25 @@ export default function Home() {
               <div className="grid gap-8 sm:grid-cols-3 sm:gap-12 mt-8">
                 <div className="relative z-10">
                   <p className="text-lg italic text-primary-700">
-                    75% of the apologies<br />come from you.
+                    75% of the apologies
+                    <br />
+                    come from you.
                   </p>
                 </div>
 
                 <div className="relative z-10">
                   <p className="text-lg italic text-primary-700">
-                    You send paragraphs.<br />She sends &ldquo;lol&rdquo;.
+                    You send paragraphs.
+                    <br />
+                    She sends &ldquo;lol&rdquo;.
                   </p>
                 </div>
 
                 <div className="relative z-10">
                   <p className="text-lg italic text-primary-700">
-                    You&apos;ve been ghosted.<br />But in slow motion.
+                    You&apos;ve been ghosted.
+                    <br />
+                    But in slow motion.
                   </p>
                 </div>
               </div>
@@ -224,7 +241,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
+
       <Footer />
     </main>
   );
