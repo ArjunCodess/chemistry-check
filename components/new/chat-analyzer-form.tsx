@@ -43,8 +43,8 @@ export function ChatAnalyzerForm() {
       return;
     }
 
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error("File size exceeds 20MB limit. Please upload a smaller file.");
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error("File size exceeds 50MB limit. Please upload a smaller file.");
       return;
     }
 

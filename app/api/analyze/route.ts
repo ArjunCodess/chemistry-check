@@ -10,9 +10,9 @@ import { eq } from 'drizzle-orm';
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '15mb',
+      sizeLimit: '50mb',
     },
-    responseLimit: '15mb'
+    responseLimit: '50mb'
   },
 };
 
