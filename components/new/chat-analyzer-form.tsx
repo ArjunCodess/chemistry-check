@@ -43,11 +43,6 @@ export function ChatAnalyzerForm() {
       return;
     }
 
-    if (file.size > 50 * 1024 * 1024) {
-      toast.error("File size exceeds 50MB limit. Please upload a smaller file.");
-      return;
-    }
-
     setIsLoading(true);
     try {
       const formData = new FormData();
