@@ -16,13 +16,20 @@ export function ChatAnalyzerForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [platform, setPlatform] = useState<Platform | null>(null);
   const [name, setName] = useState("");
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const router = useRouter();
   const { data: session } = authClient.useSession();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
+      setBlobUrl(null);
     }
+  };
+
+  const handleBlobUploaded = (url: string) => {
+    setBlobUrl(url);
+    setFile(null);
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,7 +38,7 @@ export function ChatAnalyzerForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !platform) {
+    if ((!file && !blobUrl) || !platform) {
       toast.error(
         platform ? "Please select a file" : "Please select a platform"
       );
@@ -45,11 +52,6 @@ export function ChatAnalyzerForm() {
 
     setIsLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("platform", platform);
-      formData.append("name", name || "Untitled Analysis");
-
       const handleBeforeUnload = (e: BeforeUnloadEvent) => {
         e.preventDefault();
         e.returnValue = "Analysis in progress. Are you sure you want to leave?";
@@ -57,42 +59,91 @@ export function ChatAnalyzerForm() {
       };
       window.addEventListener("beforeunload", handleBeforeUnload);
 
-      toast.info("Uploading file and analyzing chat...");
+      if (blobUrl) {
+        toast.info("Analyzing chat from uploaded file...");
 
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            blobUrl,
+            platform,
+            name: name || "Untitled Analysis",
+          }),
+          credentials: "include",
+        });
 
-      if (!response.ok) {
-        if (response.status === 413) {
-          throw new Error("File too large. Please use a smaller chat export file.");
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({
+            error: `Server error: ${response.status} ${response.statusText}`,
+          }));
+          throw new Error(
+            data.error || data.details || "Failed to analyze chat"
+          );
         }
-        
-        const data = await response.json().catch(() => ({ 
-          error: `Server error: ${response.status} ${response.statusText}` 
-        }));
-        throw new Error(data.error || data.details || "Failed to analyze chat");
+
+        const data = await response.json();
+        toast.success("Chat analysis complete!");
+
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+
+        setTimeout(() => {
+          if (data.analysisId) {
+            router.push(`/dashboard/${data.analysisId}`);
+          } else {
+            router.push("/dashboard");
+          }
+        }, 500);
+      } else if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("platform", platform);
+        formData.append("name", name || "Untitled Analysis");
+
+        toast.info("Uploading file and analyzing chat...");
+
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+          headers: {
+            Accept: "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          if (response.status === 413) {
+            throw new Error(
+              "File too large. Please use a smaller chat export file."
+            );
+          }
+
+          const data = await response.json().catch(() => ({
+            error: `Server error: ${response.status} ${response.statusText}`,
+          }));
+          throw new Error(
+            data.error || data.details || "Failed to analyze chat"
+          );
+        }
+
+        const data = await response.json();
+        toast.success("Chat analysis complete!");
+
+        // Remove beforeunload event listener
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+
+        // Add a small delay before redirecting to show the toast
+        setTimeout(() => {
+          if (data.analysisId) {
+            router.push(`/dashboard/${data.analysisId}`);
+          } else {
+            router.push("/dashboard");
+          }
+        }, 500);
       }
-
-      const data = await response.json();
-      toast.success("Chat analysis complete!");
-
-      // Remove beforeunload event listener
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-
-      // Add a small delay before redirecting to show the toast
-      setTimeout(() => {
-        if (data.analysisId) {
-          router.push(`/dashboard/${data.analysisId}`);
-        } else {
-          router.push("/dashboard");
-        }
-      }, 500);
     } catch (error) {
       console.error("Error uploading file:", error);
       toast.error(
@@ -120,10 +171,13 @@ export function ChatAnalyzerForm() {
         platform={platform}
         setPlatform={setPlatform as (p: Platform) => void}
       />
-      <FileUpload handleFileChange={handleFileChange} />
+      <FileUpload
+        handleFileChange={handleFileChange}
+        onBlobUploaded={handleBlobUploaded}
+      />
       <Button
         type="submit"
-        disabled={!file || !platform || isLoading || !session}
+        disabled={(!file && !blobUrl) || !platform || isLoading || !session}
         className="w-full py-2 sm:py-3 text-sm sm:text-base transition-colors"
       >
         {isLoading ? (

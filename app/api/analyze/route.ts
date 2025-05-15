@@ -10,18 +10,42 @@ import { eq } from 'drizzle-orm';
 export async function POST(request: NextRequest) {
   try {
     console.log("Starting analyze API request");
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-    const platform = formData.get('platform') as string;
-    const name = formData.get('name') as string || 'Untitled Analysis';
-
-    console.log(`Received request: platform=${platform}, name=${name}, file size=${file?.size || 'N/A'}`);
-
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No file provided' },
-        { status: 400 }
-      );
+    
+    const contentType = request.headers.get('content-type');
+    
+    let file: File | null = null;
+    let platform: string = '';
+    let name: string = 'Untitled Analysis';
+    let blobUrl: string | null = null;
+    
+    if (contentType && contentType.includes('application/json')) {
+      const jsonData = await request.json();
+      platform = jsonData.platform;
+      name = jsonData.name || 'Untitled Analysis';
+      blobUrl = jsonData.blobUrl;
+      
+      console.log(`Received JSON request: platform=${platform}, name=${name}, blobUrl=${blobUrl}`);
+      
+      if (!blobUrl) {
+        return NextResponse.json(
+          { error: 'No blobUrl provided' },
+          { status: 400 }
+        );
+      }
+    } else {
+      const formData = await request.formData();
+      file = formData.get('file') as File;
+      platform = formData.get('platform') as string;
+      name = formData.get('name') as string || 'Untitled Analysis';
+      
+      console.log(`Received FormData request: platform=${platform}, name=${name}, file size=${file?.size || 'N/A'}`);
+      
+      if (!file) {
+        return NextResponse.json(
+          { error: 'No file provided' },
+          { status: 400 }
+        );
+      }
     }
 
     if (!platform) {
@@ -101,9 +125,33 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log("Reading file text");
-      const text = await file.text();
-      console.log(`File text read: ${text.length} characters`);
+      let text;
+      
+      if (blobUrl) {
+        console.log("Fetching content from Blob URL:", blobUrl);
+        
+        const response = await fetch(blobUrl);
+        
+        if (!response.ok) {
+          console.error(`Failed to fetch blob: ${response.status} ${response.statusText}`);
+          return NextResponse.json(
+            { error: 'Failed to fetch file from blob storage' },
+            { status: 500 }
+          );
+        }
+        
+        text = await response.text();
+        console.log(`Blob content retrieved: ${text.length} characters`);
+      } else if (file) {
+        console.log("Reading file text from direct upload");
+        text = await file.text();
+        console.log(`File text read: ${text.length} characters`);
+      } else {
+        return NextResponse.json(
+          { error: 'No file content available' },
+          { status: 400 }
+        );
+      }
 
       let stats;
       let participantCount = 0;
