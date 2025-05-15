@@ -78,8 +78,8 @@ export function FileUpload({ handleFileChange, onBlobUploaded }: FileUploadProps
         disabled={isUploading}
       />
       {isUploading && (
-        <div className="space-y-2 mt-2">
-          <div className="text-sm text-muted-foreground flex items-center gap-2">
+        <div className="space-y-2 mt-4">
+          <div className="text-xs text-muted-foreground flex items-center gap-2">
             <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary"></div>
             <span>Uploading large file... {uploadProgress}%</span>
           </div>
