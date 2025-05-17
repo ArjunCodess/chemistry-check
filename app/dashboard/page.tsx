@@ -78,7 +78,7 @@ export default function DashboardPage() {
   }, [session]);
 
   const handleViewAnalysis = (id: string) => {
-    router.push(`/dashboard/${id}`);
+    router.push(`/analysis/${id}`);
   };
 
   const handleNewAnalysis = () => {

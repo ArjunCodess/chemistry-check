@@ -62,6 +62,7 @@ export const chatAnalysis = pgTable("chat_analysis", {
   totalMessages: integer("total_messages"),
   totalWords: integer("total_words"),
   participantCount: integer("participant_count"),
+  isPublic: boolean("is_public").default(false).notNull(),
 });
 
 export const schema = { user, session, account, verification, chatAnalysis };

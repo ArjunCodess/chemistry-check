@@ -12,9 +12,27 @@ export async function GET(
   { params }: { params: Params }
 ) {
   try {
-    let userId;
     // Await the params to get the ID
     const { id: analysisId } = await params;
+    
+    const [analysis] = await db
+      .select()
+      .from(chatAnalysis)
+      .where(eq(chatAnalysis.id, analysisId))
+      .limit(1);
+      
+    if (!analysis) {
+      return NextResponse.json(
+        { error: "Analysis not found" },
+        { status: 404 }
+      );
+    }
+
+    if (analysis.isPublic) {
+      return NextResponse.json(analysis);
+    }
+    
+    let userId;
 
     try {
       // Get current user session from auth.api.getSession
@@ -69,20 +87,6 @@ export async function GET(
       return NextResponse.json(
         { error: "Authentication failed", details: String(authError) },
         { status: 401 }
-      );
-    }
-    
-    // Get the analysis for the current user
-    const [analysis] = await db
-      .select()
-      .from(chatAnalysis)
-      .where(eq(chatAnalysis.id, analysisId))
-      .limit(1);
-
-    if (!analysis) {
-      return NextResponse.json(
-        { error: "Analysis not found" },
-        { status: 404 }
       );
     }
 
@@ -263,30 +267,51 @@ export async function PATCH(
       );
     }
 
-    // Parse the request body to get the updated name
-    const { name } = await request.json();
+    // Parse the request body to get the updated fields
+    const body = await request.json();
+    const updateData: { name?: string; isPublic?: boolean } = {};
     
-    if (!name || typeof name !== 'string') {
+    if (body.name !== undefined) {
+      if (typeof body.name !== 'string') {
+        return NextResponse.json(
+          { error: "Name must be a string" },
+          { status: 400 }
+        );
+      }
+      updateData.name = body.name.trim();
+    }
+    
+    if (body.isPublic !== undefined) {
+      if (typeof body.isPublic !== 'boolean') {
+        return NextResponse.json(
+          { error: "isPublic must be a boolean" },
+          { status: 400 }
+        );
+      }
+      updateData.isPublic = body.isPublic;
+    }
+    
+    if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
-        { error: "Name is required and must be a string" },
+        { error: "No valid fields to update" },
         { status: 400 }
       );
     }
 
-    // Update the analysis name
+    // Update the analysis
     await db
       .update(chatAnalysis)
-      .set({ name: name.trim() })
+      .set(updateData)
       .where(eq(chatAnalysis.id, analysisId));
 
     return NextResponse.json({ 
       success: true,
-      message: "Analysis name updated successfully"
+      message: "Analysis updated successfully"
     });
   } catch (error) {
-    console.error("Error updating analysis name:", error);
+    console.error("Error updating analysis:", error);
     return NextResponse.json(
-      { error: "Failed to update analysis name", details: String(error) },
+      { error: "Failed to update analysis", details: String(error) },
       { status: 500 }
     );
   }

@@ -92,7 +92,7 @@ export function ChatAnalyzerForm() {
 
         setTimeout(() => {
           if (data.analysisId) {
-            router.push(`/dashboard/${data.analysisId}`);
+            router.push(`/analysis/${data.analysisId}`);
           } else {
             router.push("/dashboard");
           }
@@ -138,7 +138,7 @@ export function ChatAnalyzerForm() {
         // Add a small delay before redirecting to show the toast
         setTimeout(() => {
           if (data.analysisId) {
-            router.push(`/dashboard/${data.analysisId}`);
+            router.push(`/analysis/${data.analysisId}`);
           } else {
             router.push("/dashboard");
           }
