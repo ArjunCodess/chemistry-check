@@ -15,31 +15,6 @@ export default function Home() {
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-8">
             <div className="my-auto">
               <div className="flex flex-col items-center lg:items-start gap-6 md:gap-8 max-w-lg text-center lg:text-left mx-auto lg:mx-0">
-                <div className="flex flex-row gap-4">
-                  <Link
-                    href="https://www.producthunt.com/posts/chemistrycheck?embed=true&utm_source=badge-featured&utm_medium=badge&utm_souce=badge-chemistrycheck"
-                    target="_blank"
-                  >
-                    <Image
-                      src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=961102&theme=light&t=1747141299619"
-                      alt="ChemistryCheck - Because&#0032;words&#0032;aren't&#0032;always&#0032;honest | Product Hunt"
-                      width="250"
-                      height="54"
-                    />
-                  </Link>
-
-                  <Link
-                    href="https://peerlist.io/arjuncodess/project/chemistrycheck"
-                    target="_blank"
-                  >
-                    <Image
-                      src="/peerlist.svg"
-                      alt="ChemistryCheck - Because&#0032;words&#0032;aren't&#0032;always&#0032;honest | Peerlist"
-                      width="210"
-                      height="48"
-                    />
-                  </Link>
-                </div>
                 <h1
                   className={cn(
                     "relative tracking-tight font-bold text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-neutral-900 leading-tight sm:leading-[3.25rem] md:leading-[4rem]"
