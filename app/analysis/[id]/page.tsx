@@ -317,26 +317,26 @@ export default function AnalysisDashboard() {
             </p>
           )}
         </div>
-        <div className="flex flex-row w-full md:w-fit space-x-2 mt-2 sm:mt-auto sm:mb-0">
+        <div className="flex flex-col sm:flex-row w-full md:w-fit gap-2 mt-2 sm:mt-auto sm:mb-0">
           <Button
             variant="outline"
             onClick={() => router.back()}
-            className="w-1/2 md:w-fit"
+            className="w-full sm:w-1/2 md:w-fit"
           >
             <ArrowLeft className="h-4 w-4" /> Back
           </Button>
           
           {session && session.user && analysisDetails?.userId === session.user.id && (
             <>
-              <div className="relative">
+              <div className="relative w-full sm:w-1/2 md:w-fit">
                 {analysisDetails?.isPublic ? (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="w-full md:w-fit">
+                      <Button variant="outline" className="w-full">
                         <Share2 className="h-4 w-4 mr-2" /> Share
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center" className="w-[300px] p-3">
+                    <DropdownMenuContent align="center" className="sm:w-[300px] p-3">
                       <div className="text-sm text-center mb-2 text-neutral-700">
                         Share this analysis
                       </div>
@@ -368,7 +368,7 @@ export default function AnalysisDashboard() {
                   <Button
                     variant="outline"
                     onClick={togglePublicStatus}
-                    className="w-full md:w-fit"
+                    className="w-full"
                   >
                     <Globe className="h-4 w-4 mr-2" /> Make Public
                   </Button>
@@ -377,7 +377,7 @@ export default function AnalysisDashboard() {
               
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="w-1/2 md:w-fit">
+                  <Button variant="destructive" className="w-full sm:w-1/2 md:w-fit">
                     Delete Analysis
                   </Button>
                 </AlertDialogTrigger>
@@ -427,7 +427,7 @@ export default function AnalysisDashboard() {
             <Button
               variant="outline"
               onClick={copyShareUrl}
-              className="w-1/2 md:w-fit"
+              className="w-full sm:w-1/2 md:w-fit"
             >
               <Copy className="h-4 w-4 mr-2" /> Copy Link
             </Button>
