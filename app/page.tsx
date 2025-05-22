@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { steps } from "@/lib/how-it-works-steps";
 import { cn } from "@/lib/utils";
 import { Check, MoveRight } from "lucide-react";
 import Link from "next/link";
@@ -177,30 +176,29 @@ export default function Home() {
       </section>
 
       <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              How It Works
+        <div className="max-w-[100rem] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl sm:text-5xl lg:text-6xl font-bold mb-4">
+              See a{" "}
+              <span className="bg-primary-700 text-white rounded-lg px-2 sm:px-4 block sm:inline w-fit mx-auto sm:mx-0">
+                Real Analysis
+              </span>
             </h2>
-            <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
-              Getting insights into your conversations is simple with our
-              three-step process.
+            <p className="text-lg max-w-xl mx-auto text-neutral-600">
+              Here&apos;s an example of what your chat analysis will look like.
+              Explore this public sample to see our insights in action.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {steps.map((step, index) => (
-              <div
-                key={index}
-                className="flex flex-col items-center text-center"
-              >
-                <div className="p-4 rounded-full mb-6 bg-primary-100">
-                  {step.icon}
-                </div>
-                <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-                <p className="text-neutral-600">{step.description}</p>
-              </div>
-            ))}
+          <div className="relative w-full border overflow-hidden rounded-md border-neutral-200 shadow-lg">
+            <div className="h-[30rem] sm:h-[40rem] md:h-[50rem] w-full">
+              <iframe
+                src="https://chemistrycheck.vercel.app/analysis/00d311b9-8619-4bae-8367-029aea4eeae6"
+                className="absolute inset-0 h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           </div>
         </div>
       </section>
